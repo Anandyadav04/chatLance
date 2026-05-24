@@ -5,8 +5,11 @@ import dotenv from "dotenv";
 import app from "./app.js";
 
 import env from "./config/env.js";
+import connectDB from "./config/db.js";
 
-const server = http.createServer(app);
+connectDB();
+
+const server = http.createServer(app); 
 
 const io = new Server(server, {
   cors: {
