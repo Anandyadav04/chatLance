@@ -29,6 +29,12 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
+// local module import
+import authRoutes from "./routes/authRoutes.js";
+
+app.use("/api/auth", authRoutes);
+
+
 app.get("/", (req, res) => {
     res.send("Welcome to ChatLance")
 });

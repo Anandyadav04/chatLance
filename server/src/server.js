@@ -4,13 +4,13 @@ import dotenv from "dotenv";
 
 import app from "./app.js";
 
-dotenv.config()
+import env from "./config/env.js";
 
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL,
+    origin: env.CLIENT_URL,
     credentials: true,
   },
 });
@@ -23,7 +23,7 @@ io.on("connection", (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = env.PORT || 5000;
 
 server.listen(PORT, () => {
     console.log(`server is listening on port ${PORT}`);
