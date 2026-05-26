@@ -6,6 +6,7 @@ import app from "./app.js";
 
 import env from "./config/env.js";
 import connectDB from "./config/db.js";
+import socketHandler from "./sockets/socketHandler.js";
 
 connectDB();
 
@@ -18,13 +19,7 @@ const io = new Server(server, {
   },
 });
 
-io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
-
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-  });
-});
+socketHandler(io);
 
 const PORT = env.PORT || 5000;
 
