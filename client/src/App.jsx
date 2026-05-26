@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Login from "./pages/Login.jsx";
+import ChatRoom from "./pages/ChatRoom.jsx";
 
 function App() {
   return (
@@ -11,6 +12,11 @@ function App() {
         <Route
           path="/"
           element={<Login />}
+        />
+
+        <Route
+          path="/chat"
+          element={<ChatRoom />}
         />
 
       </Routes>
