@@ -4,6 +4,8 @@ import User from "../models/User.js";
 
 import env from "../config/env.js";
 
+import roomSocket from "./roomSocket.js";
+
 const socketHandler = (io) => {
 
   // Socket Authentication Middleware
@@ -45,6 +47,8 @@ const socketHandler = (io) => {
     console.log(
       `User Connected: ${socket.user.username}`
     );
+
+    roomSocket(io, socket);
 
     console.log(
       `Socket ID: ${socket.id}`

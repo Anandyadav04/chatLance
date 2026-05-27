@@ -4,41 +4,35 @@ import { createSocketConnection } from "../socket/socket";
 
 const ChatRoom = () => {
 
-  useEffect(() => {
+    useEffect(() => {
 
-    // Get token
-    const token = localStorage.getItem("token");
+        const token = localStorage.getItem("token");
 
-    // Create socket connection
-    const socket = createSocketConnection(token);
+        const socket = createSocketConnection(token);
 
-    // Connection success
-    socket.on("connect", () => {
+        socket.on("connect", () => {
 
-      console.log("Socket Connected");
+            console.log("Socket Connected");
 
-      console.log(socket.id);
+            // Join room
+            socket.emit("join_room", "room-1");
 
-    });
+        });
 
-    // Listen for pong
-    socket.on("pong", () => {
+        // Listen for room event
+        socket.on("user_joined", (data) => {
 
-      console.log("Pong received from server");
+            console.log(data.message);
 
-    });
+        });
 
-    // Send ping event
-    socket.emit("ping");
+        return () => {
 
-    // Cleanup connection
-    return () => {
+            socket.disconnect();
 
-      socket.disconnect();
+        };
 
-    };
-
-  }, []);
+    }, []);
 
   return (
     <div>
