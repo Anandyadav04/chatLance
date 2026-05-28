@@ -5,6 +5,7 @@ import User from "../models/User.js";
 import env from "../config/env.js";
 
 import roomSocket from "./roomSocket.js";
+import messageSocket from "./messageSocket.js";
 
 const socketHandler = (io) => {
 
@@ -49,6 +50,8 @@ const socketHandler = (io) => {
     );
 
     roomSocket(io, socket);
+    
+    messageSocket(io, socket);
 
     console.log(
       `Socket ID: ${socket.id}`

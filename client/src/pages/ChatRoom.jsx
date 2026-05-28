@@ -1,42 +1,107 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { createSocketConnection } from "../socket/socket";
 
 const ChatRoom = () => {
 
-    useEffect(() => {
+  const [socket, setSocket] = useState(null);
 
-        const token = localStorage.getItem("token");
+  const [message, setMessage] = useState("");
 
-        const socket = createSocketConnection(token);
+  const [messages, setMessages] = useState([]);
 
-        socket.on("connect", () => {
+  const roomId = "room-1";
 
-            console.log("Socket Connected");
+  useEffect(() => {
 
-            // Join room
-            socket.emit("join_room", "room-1");
+    const token = localStorage.getItem("token");
 
-        });
+    const newSocket = createSocketConnection(token);
 
-        // Listen for room event
-        socket.on("user_joined", (data) => {
+    setSocket(newSocket);
 
-            console.log(data.message);
+    newSocket.on("connect", () => {
 
-        });
+      console.log("Socket Connected");
 
-        return () => {
+      newSocket.emit("join_room", roomId);
 
-            socket.disconnect();
+    });
 
-        };
+    // Receive messages
+    newSocket.on(
+      "receive_message",
+      (data) => {
 
-    }, []);
+        console.log(data);
+
+        setMessages((prev) => [
+          ...prev,
+          data,
+        ]);
+
+      }
+    );
+
+    return () => {
+
+      newSocket.disconnect();
+
+    };
+
+  }, []);
+
+  // Send message
+  const sendMessage = () => {
+
+    if (!message.trim()) return;
+
+    socket.emit(
+      "send_message",
+      {
+        roomId,
+        message,
+      }
+    );
+
+    setMessage("");
+
+  };
 
   return (
     <div>
+
       <h1>Chat Room</h1>
+
+      {/* Message Input */}
+      <input
+        type="text"
+        placeholder="Enter message"
+        value={message}
+        onChange={(e) =>
+          setMessage(e.target.value)
+        }
+      />
+
+      <button onClick={sendMessage}>
+        Send
+      </button>
+
+      {/* Messages */}
+      <div>
+
+        {messages.map((msg, index) => (
+
+          <div key={index}>
+
+            <strong>{msg.user}</strong>: {msg.message}
+
+          </div>
+
+        ))}
+
+      </div>
+
     </div>
   );
 };
