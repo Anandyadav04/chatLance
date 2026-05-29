@@ -1,24 +1,40 @@
+import Message from "../models/Message.js";
+
 const messageSocket = (io, socket) => {
 
-  // Listen for messages
-  socket.on("send_message", (data) => {
+  socket.on(
+    "send_message",
+    async (data) => {
 
-    console.log(
-      `${socket.user.username}: ${data.message}`
-    );
+      try {
 
-    // Broadcast message to room
-    io.to(data.roomId).emit(
-      "receive_message",
-      {
-        user: socket.user.username,
-        message: data.message,
-        roomId: data.roomId,
-        createdAt: new Date(),
+        // Save message in DB
+        const newMessage =
+          await Message.create({
+            roomId: data.roomId,
+            sender: socket.user._id,
+            message: data.message,
+          });
+
+        // Broadcast message
+        io.to(data.roomId).emit(
+          "receive_message",
+          {
+            _id: newMessage._id,
+            user: socket.user.username,
+            message: newMessage.message,
+            roomId: newMessage.roomId,
+            createdAt: newMessage.createdAt,
+          }
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
       }
-    );
-
-  });
+    }
+  );
 
 };
 
