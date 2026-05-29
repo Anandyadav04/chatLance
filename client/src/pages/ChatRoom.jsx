@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 
 import { createSocketConnection } from "../socket/socket";
 
+import api from "../api/axios.js"
+
 const ChatRoom = () => {
 
   const [socket, setSocket] = useState(null);
@@ -12,7 +14,40 @@ const ChatRoom = () => {
 
   const roomId = "room-1";
 
+   const fetchMessages = async () => {
+    try {
+
+      const token =
+        localStorage.getItem("token");
+
+      const res = await api.get(
+        `/messages/${roomId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const formattedMessages =
+        res.data.map((msg) => ({
+          user: msg.sender.username,
+          message: msg.message,
+          createdAt: msg.createdAt,
+        }));
+
+      setMessages(formattedMessages);
+
+    } catch (error) {
+
+      console.error(error);
+
+    }
+  };
+
   useEffect(() => {
+
+    fetchMessages();
 
     const token = localStorage.getItem("token");
 

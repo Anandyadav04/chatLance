@@ -31,8 +31,10 @@ app.use(limiter);
 
 // local module import
 import authRoutes from "./routes/authRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js"
 
 app.use("/api/auth", authRoutes);
+app.use("/api/messages", messageRoutes);
 
 
 app.get("/", (req, res) => {
