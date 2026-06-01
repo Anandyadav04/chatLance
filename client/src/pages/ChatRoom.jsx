@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-
 import { createSocketConnection } from "../socket/socket";
-
-import api from "../api/axios.js"
+import api from "../api/axios.js";
+import RoomList from "../components/Room/RoomList";
 
 const ChatRoom = () => {
 
@@ -12,16 +11,52 @@ const ChatRoom = () => {
 
   const [messages, setMessages] = useState([]);
 
-  const roomId = "room-1";
+  const [rooms, setRooms] = useState([]);
 
-   const fetchMessages = async () => {
+  const [selectedRoom, setSelectedRoom] =
+    useState(null);
+
+  // Fetch all rooms
+  const fetchRooms = async () => {
     try {
 
       const token =
         localStorage.getItem("token");
 
       const res = await api.get(
-        `/messages/${roomId}`,
+        "/rooms",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setRooms(res.data);
+
+      if (res.data.length > 0) {
+        setSelectedRoom(res.data[0]);
+      }
+
+    } catch (error) {
+
+      console.error(error);
+
+    }
+  };
+
+  // Fetch room messages
+  const fetchMessages = async () => {
+
+    if (!selectedRoom) return;
+
+    try {
+
+      const token =
+        localStorage.getItem("token");
+
+      const res = await api.get(
+        `/messages/${selectedRoom._id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -45,30 +80,30 @@ const ChatRoom = () => {
     }
   };
 
+  // Create socket connection ONCE
   useEffect(() => {
 
-    fetchMessages();
+    fetchRooms();
 
-    const token = localStorage.getItem("token");
+    const token =
+      localStorage.getItem("token");
 
-    const newSocket = createSocketConnection(token);
+    const newSocket =
+      createSocketConnection(token);
 
     setSocket(newSocket);
 
     newSocket.on("connect", () => {
 
-      console.log("Socket Connected");
-
-      newSocket.emit("join_room", roomId);
+      console.log(
+        "Socket Connected"
+      );
 
     });
 
-    // Receive messages
     newSocket.on(
       "receive_message",
       (data) => {
-
-        console.log(data);
 
         setMessages((prev) => [
           ...prev,
@@ -86,15 +121,36 @@ const ChatRoom = () => {
 
   }, []);
 
+  // When room changes
+  useEffect(() => {
+
+    if (!selectedRoom || !socket)
+      return;
+
+    setMessages([]);
+
+    fetchMessages();
+
+    socket.emit(
+      "join_room",
+      selectedRoom._id
+    );
+
+  }, [selectedRoom, socket]);
+
   // Send message
   const sendMessage = () => {
 
-    if (!message.trim()) return;
+    if (!message.trim())
+      return;
+
+    if (!selectedRoom)
+      return;
 
     socket.emit(
       "send_message",
       {
-        roomId,
+        roomId: selectedRoom._id,
         message,
       }
     );
@@ -108,7 +164,18 @@ const ChatRoom = () => {
 
       <h1>Chat Room</h1>
 
-      {/* Message Input */}
+      <RoomList
+        rooms={rooms}
+        selectedRoom={selectedRoom}
+        onSelectRoom={setSelectedRoom}
+      />
+
+      <h2>
+        {selectedRoom
+          ? selectedRoom.name
+          : "Select a room"}
+      </h2>
+
       <input
         type="text"
         placeholder="Enter message"
@@ -122,18 +189,20 @@ const ChatRoom = () => {
         Send
       </button>
 
-      {/* Messages */}
       <div>
 
-        {messages.map((msg, index) => (
+        {messages.map(
+          (msg, index) => (
 
-          <div key={index}>
+            <div key={index}>
+              <strong>
+                {msg.user}
+              </strong>
+              : {msg.message}
+            </div>
 
-            <strong>{msg.user}</strong>: {msg.message}
-
-          </div>
-
-        ))}
+          )
+        )}
 
       </div>
 
