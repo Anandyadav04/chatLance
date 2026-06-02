@@ -17,6 +17,10 @@ const ChatRoom = () => {
   const [selectedRoom, setSelectedRoom] =
     useState(null);
 
+  const [onlineUsers,
+    setOnlineUsers] =
+    useState([]);
+
   // create new room
   const createRoom =
     async (roomData) => {
@@ -151,6 +155,15 @@ const ChatRoom = () => {
       }
     );
 
+    newSocket.on(
+      "online_users",
+      (users) => {
+
+        setOnlineUsers(users);
+
+      }
+    );
+
     return () => {
 
       newSocket.disconnect();
@@ -213,6 +226,18 @@ const ChatRoom = () => {
         selectedRoom={selectedRoom}
         onSelectRoom={setSelectedRoom}
       />
+
+      <h3>Online Users</h3>
+
+      {onlineUsers.map((user) => (
+
+        <div
+          key={user.socketId}
+        >
+          🟢 {user.username}
+        </div>
+
+      ))}
 
       <h2>
         {selectedRoom

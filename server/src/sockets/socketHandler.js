@@ -6,6 +6,7 @@ import env from "../config/env.js";
 
 import roomSocket from "./roomSocket.js";
 import messageSocket from "./messageSocket.js";
+import onlineUsers from "../services/onlineUsers.js";
 
 const socketHandler = (io) => {
 
@@ -45,8 +46,23 @@ const socketHandler = (io) => {
   // Connection Event
   io.on("connection", (socket) => {
 
+    onlineUsers.set(
+      socket.user._id.toString(),
+      {
+        socketId: socket.id,
+        username: socket.user.username,
+      }
+    );
+
     console.log(
       `User Connected: ${socket.user.username}`
+    );
+
+    io.emit(
+      "online_users",
+      Array.from(
+        onlineUsers.values()
+      )
     );
 
     roomSocket(io, socket);
@@ -70,6 +86,17 @@ const socketHandler = (io) => {
 
     // Disconnect Event
     socket.on("disconnect", () => {
+
+      onlineUsers.delete(
+        socket.user._id.toString()
+      );
+
+      io.emit(
+        "online_users",
+        Array.from(
+          onlineUsers.values()
+        )
+      );
 
       console.log(
         `${socket.user.username} disconnected`
