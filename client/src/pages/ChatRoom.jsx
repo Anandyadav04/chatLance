@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createSocketConnection } from "../socket/socket";
 import api from "../api/axios.js";
 import RoomList from "../components/Room/RoomList";
+import CreateRoom from "../components/Room/CreateRoom";
 
 const ChatRoom = () => {
 
@@ -15,6 +16,43 @@ const ChatRoom = () => {
 
   const [selectedRoom, setSelectedRoom] =
     useState(null);
+
+  // create new room
+  const createRoom =
+    async (roomData) => {
+
+    try {
+
+      const token =
+        localStorage.getItem("token");
+
+      const res = await api.post(
+        "/rooms",
+        roomData,
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`,
+          },
+        }
+      );
+
+      setRooms((prev) => [
+        ...prev,
+        res.data,
+      ]);
+
+      setSelectedRoom(
+        res.data
+      );
+
+    } catch (error) {
+
+      console.error(error);
+
+    }
+
+  };
 
   // Fetch all rooms
   const fetchRooms = async () => {
@@ -163,6 +201,12 @@ const ChatRoom = () => {
     <div>
 
       <h1>Chat Room</h1>
+
+      <CreateRoom
+        onCreateRoom={
+          createRoom
+        }
+      />
 
       <RoomList
         rooms={rooms}
