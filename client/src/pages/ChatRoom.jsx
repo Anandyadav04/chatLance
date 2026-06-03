@@ -232,7 +232,7 @@ const ChatRoom = () => {
       {onlineUsers.map((user) => (
 
         <div
-          key={user.socketId}
+          key={user.id}
         >
           🟢 {user.username}
         </div>
