@@ -36,6 +36,40 @@ const messageSocket = (io, socket) => {
     }
   );
 
+    socket.on(
+      "typing",
+      (roomId) => {
+
+        console.log(
+          `${socket.user.username} typing in room ${roomId}`
+        );
+
+        socket.to(roomId).emit(
+          "user_typing",
+          {
+            username:
+              socket.user.username,
+          }
+        );
+
+      }
+    );
+
+  socket.on(
+    "stop_typing",
+    (roomId) => {
+
+      socket.to(roomId).emit(
+        "user_stop_typing",
+        {
+          username:
+            socket.user.username,
+        }
+      );
+
+    }
+  );
+
 };
 
 export default messageSocket;

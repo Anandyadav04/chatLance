@@ -17,9 +17,11 @@ const ChatRoom = () => {
   const [selectedRoom, setSelectedRoom] =
     useState(null);
 
-  const [onlineUsers,
-    setOnlineUsers] =
-    useState([]);
+  const [onlineUsers, setOnlineUsers] = useState([]);
+
+  const [typingUser, setTypingUser] = useState("");
+
+  const [typingTimeout, setTypingTimeout] = useState(null);
 
   // create new room
   const createRoom =
@@ -164,6 +166,26 @@ const ChatRoom = () => {
       }
     );
 
+    newSocket.on(
+      "user_typing",
+      (data) => {
+
+        setTypingUser(
+          data.username
+        );
+
+      }
+    );
+
+    newSocket.on(
+      "user_stop_typing",
+      () => {
+
+        setTypingUser("");
+
+      }
+    );
+
     return () => {
 
       newSocket.disconnect();
@@ -184,7 +206,7 @@ const ChatRoom = () => {
 
     socket.emit(
       "join_room",
-      selectedRoom._id
+      selectedRoom?._id
     );
 
   }, [selectedRoom, socket]);
@@ -245,13 +267,50 @@ const ChatRoom = () => {
           : "Select a room"}
       </h2>
 
+      {typingUser && (
+        <p>
+          {typingUser} is typing...
+        </p>
+      )}
+
       <input
         type="text"
         placeholder="Enter message"
         value={message}
-        onChange={(e) =>
-          setMessage(e.target.value)
-        }
+        onChange={(e) => {
+
+          setMessage(
+            e.target.value
+          );
+
+          socket?.emit(
+            "typing",
+            selectedRoom?._id
+          );
+
+          if (typingTimeout) {
+
+            clearTimeout(
+              typingTimeout
+            );
+
+          }
+
+          const timeout =
+            setTimeout(() => {
+
+              socket?.emit(
+                "stop_typing",
+                selectedRoom?._id
+              );
+
+            }, 1000);
+
+          setTypingTimeout(
+            timeout
+          );
+
+        }}
       />
 
       <button onClick={sendMessage}>
