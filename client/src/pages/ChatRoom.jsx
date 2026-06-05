@@ -3,8 +3,11 @@ import { createSocketConnection } from "../socket/socket";
 import api from "../api/axios.js";
 import RoomList from "../components/Room/RoomList";
 import CreateRoom from "../components/Room/CreateRoom";
+import { useNavigate } from "react-router-dom";
 
 const ChatRoom = () => {
+
+  const navigate = useNavigate();
 
   const [socket, setSocket] = useState(null);
 
@@ -22,6 +25,16 @@ const ChatRoom = () => {
   const [typingUser, setTypingUser] = useState("");
 
   const [typingTimeout, setTypingTimeout] = useState(null);
+
+  const logout = () => {
+
+    localStorage.removeItem("token");
+
+    socket?.disconnect();
+
+    navigate("/login");
+
+  };
 
   // create new room
   const createRoom =
@@ -309,6 +322,12 @@ const ChatRoom = () => {
 
   return (
     <div>
+
+      <button
+        onClick={logout}
+      >
+        Logout
+      </button>
 
       <h1>Chat Room</h1>
 
