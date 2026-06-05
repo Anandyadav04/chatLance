@@ -4,6 +4,7 @@ import Login from "./pages/Login.jsx";
 import ChatRoom from "./pages/ChatRoom.jsx";
 import ProtectedRoute from "./pages/ProtectedRoute.jsx";
 import Home from "./pages/Home.jsx"
+import Register from "./pages/Register.jsx";
 
 function App() {
   return (
@@ -20,6 +21,12 @@ function App() {
           path="/login"
           element={<Login />}
         />
+
+        <Route
+          path="/register"
+          element={<Register />}
+        />
+
 
         <Route
           path="/chat"
