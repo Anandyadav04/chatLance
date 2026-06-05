@@ -14,12 +14,7 @@ import {
   Trash2,
   Plus,
   Hash,
-  MoreVertical,
-  Search,
-  Smile,
-  Paperclip,
-  Mic,
-  ArrowLeft
+  Search
 } from "lucide-react";
 
 const ChatRoom = () => {
@@ -33,16 +28,14 @@ const ChatRoom = () => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [typingUser, setTypingUser] = useState("");
   const [typingTimeout, setTypingTimeout] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateRoom, setShowCreateRoom] = useState(false);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Create new room
   const createRoom = async (roomData) => {
     try {
       const token = localStorage.getItem("token");
@@ -57,7 +50,6 @@ const ChatRoom = () => {
     }
   };
 
-  // Fetch all rooms
   const fetchRooms = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -73,7 +65,6 @@ const ChatRoom = () => {
     }
   };
 
-  // Fetch room messages
   const fetchMessages = async () => {
     if (!selectedRoom) return;
     try {
@@ -103,27 +94,19 @@ const ChatRoom = () => {
     }
   };
 
-  // Create socket connection ONCE
   useEffect(() => {
     fetchRooms();
     const token = localStorage.getItem("token");
     const newSocket = createSocketConnection(token);
     setSocket(newSocket);
-    newSocket.on("connect", () => {
-      console.log("Socket Connected");
-    });
+    
+    newSocket.on("connect", () => console.log("Socket Connected"));
     newSocket.on("receive_message", (data) => {
       setMessages((prev) => [...prev, data]);
     });
-    newSocket.on("online_users", (users) => {
-      setOnlineUsers(users);
-    });
-    newSocket.on("user_typing", (data) => {
-      setTypingUser(data.username);
-    });
-    newSocket.on("user_stop_typing", () => {
-      setTypingUser("");
-    });
+    newSocket.on("online_users", (users) => setOnlineUsers(users));
+    newSocket.on("user_typing", (data) => setTypingUser(data.username));
+    newSocket.on("user_stop_typing", () => setTypingUser(""));
     newSocket.on("message_read", ({ messageId }) => {
       setMessages((prev) =>
         prev.map((msg) =>
@@ -138,12 +121,10 @@ const ChatRoom = () => {
         )
       );
     });
-    return () => {
-      newSocket.disconnect();
-    };
+    
+    return () => newSocket.disconnect();
   }, []);
 
-  // When room changes
   useEffect(() => {
     if (!selectedRoom || !socket) return;
     setMessages([]);
@@ -151,10 +132,8 @@ const ChatRoom = () => {
     socket.emit("join_room", selectedRoom?._id);
   }, [selectedRoom, socket]);
 
-  // Send message
   const sendMessage = () => {
-    if (!message.trim()) return;
-    if (!selectedRoom) return;
+    if (!message.trim() || !selectedRoom) return;
     socket.emit("send_message", {
       roomId: selectedRoom._id,
       message,
@@ -187,59 +166,47 @@ const ChatRoom = () => {
   );
 
   return (
-    <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex flex-col overflow-hidden">
-      {/* Modern Navbar */}
-      <div className="h-16 px-6 flex items-center justify-between bg-gray-900/50 backdrop-blur-xl border-b border-gray-700/50 shadow-lg">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-            <MessageSquare className="w-5 h-5 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-            ChatLance
-          </h1>
+    <div className="h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col">
+      {/* Simple Navbar */}
+      <div className="h-16 px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+        <div className="flex items-center gap-2">
+          <MessageSquare className="w-6 h-6 text-blue-500" />
+          <h1 className="text-xl font-semibold">ChatLance</h1>
         </div>
         <button
           onClick={logout}
-          className="group px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl transition-all duration-300 flex items-center gap-2 hover:scale-105"
+          className="px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition"
         >
-          <LogOut className="w-4 h-4 text-red-400 group-hover:text-red-300" />
-          <span className="text-red-400 group-hover:text-red-300">Logout</span>
+          Logout
         </button>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - Modern Drawer */}
-        <div className={`
-          ${isSidebarOpen ? 'w-80' : 'w-0'} 
-          bg-gray-900/30 backdrop-blur-xl border-r border-gray-700/50 
-          transition-all duration-300 ease-in-out overflow-hidden
-          flex flex-col
-        `}>
-          <div className="flex-1 overflow-y-auto p-4 space-y-6">
-            {/* Create Room Button */}
-            <div className="space-y-3">
-              {!showCreateRoom ? (
+        {/* Sidebar */}
+        <div className="w-80 border-r border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 flex flex-col overflow-y-auto">
+          <div className="p-4 space-y-6">
+            {/* Create Room */}
+            {!showCreateRoom ? (
+              <button
+                onClick={() => setShowCreateRoom(true)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition text-sm font-medium"
+              >
+                <Plus className="w-4 h-4" />
+                New Room
+              </button>
+            ) : (
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                <CreateRoom onCreateRoom={createRoom} />
                 <button
-                  onClick={() => setShowCreateRoom(true)}
-                  className="w-full group flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl font-semibold transition-all duration-300 hover:shadow-lg hover:scale-105"
+                  onClick={() => setShowCreateRoom(false)}
+                  className="mt-3 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400"
                 >
-                  <Plus className="w-5 h-5" />
-                  <span>Create New Room</span>
+                  Cancel
                 </button>
-              ) : (
-                <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
-                  <CreateRoom onCreateRoom={createRoom} />
-                  <button
-                    onClick={() => setShowCreateRoom(false)}
-                    className="mt-2 text-sm text-gray-400 hover:text-gray-300"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            {/* Search Rooms */}
+            {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -247,42 +214,56 @@ const ChatRoom = () => {
                 placeholder="Search rooms..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-800/50 pl-10 pr-4 py-2 rounded-xl border border-gray-700 focus:border-indigo-500 outline-none transition-colors"
+                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
             {/* Rooms List */}
             <div>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                <Hash className="w-4 h-4" />
-                Rooms ({filteredRooms.length})
-              </h3>
-              <RoomList
-                rooms={filteredRooms}
-                selectedRoom={selectedRoom}
-                onSelectRoom={setSelectedRoom}
-              />
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  All Rooms
+                </h3>
+                <span className="text-xs text-gray-400">{filteredRooms.length}</span>
+              </div>
+              <div className="space-y-1">
+                {filteredRooms.map((room) => (
+                  <button
+                    key={room._id}
+                    onClick={() => setSelectedRoom(room)}
+                    className={`w-full text-left px-3 py-2 rounded-lg transition text-sm ${
+                      selectedRoom?._id === room._id
+                        ? "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
+                        : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Hash className="w-4 h-4" />
+                      <span>{room.name}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Online Users */}
             <div>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Online ({onlineUsers.length})
-              </h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Online
+                </h3>
+                <span className="text-xs text-gray-400">{onlineUsers.length}</span>
+              </div>
               <div className="space-y-2">
                 {onlineUsers.map((user) => (
-                  <div
-                    key={user.id}
-                    className="group flex items-center gap-3 px-3 py-2 rounded-xl bg-gray-800/30 hover:bg-gray-800/50 transition-all duration-300"
-                  >
+                  <div key={user.id} className="flex items-center gap-2 px-3 py-2">
                     <div className="relative">
-                      <div className="w-2 h-2 bg-green-500 rounded-full absolute bottom-0 right-0 ring-2 ring-gray-900"></div>
-                      <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                      <div className="w-2 h-2 bg-green-500 rounded-full absolute bottom-0 right-0"></div>
+                      <div className="w-8 h-8 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center text-sm font-medium">
                         {user.username[0].toUpperCase()}
                       </div>
                     </div>
-                    <span className="text-sm font-medium">{user.username}</span>
+                    <span className="text-sm">{user.username}</span>
                   </div>
                 ))}
               </div>
@@ -290,117 +271,88 @@ const ChatRoom = () => {
           </div>
         </div>
 
-        {/* Chat Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col bg-white dark:bg-gray-900">
           {/* Chat Header */}
-          <div className="h-16 px-6 flex items-center justify-between bg-gray-900/30 backdrop-blur-xl border-b border-gray-700/50">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="lg:hidden p-2 hover:bg-gray-800 rounded-lg transition"
-              >
-                <ArrowLeft className={`w-5 h-5 transition-transform ${isSidebarOpen ? 'rotate-0' : 'rotate-180'}`} />
-              </button>
-              {selectedRoom ? (
-                <>
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <Hash className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold">{selectedRoom.name}</h2>
-                    <p className="text-xs text-gray-400">
-                      {onlineUsers.length} online • {messages.length} messages
-                    </p>
-                  </div>
-                </>
-              ) : (
-                <div>
-                  <h2 className="text-lg font-semibold">Welcome to ChatLance</h2>
-                  <p className="text-xs text-gray-400">Select a room to start chatting</p>
-                </div>
-              )}
-            </div>
-            <button className="p-2 hover:bg-gray-800 rounded-lg transition">
-              <MoreVertical className="w-5 h-5 text-gray-400" />
-            </button>
-          </div>
-
-          {/* Typing Indicator */}
-          {typingUser && selectedRoom && (
-            <div className="h-8 px-6 flex items-center">
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1">
-                  <div className="w-1 h-1 bg-indigo-400 rounded-full animate-bounce"></div>
-                  <div className="w-1 h-1 bg-indigo-400 rounded-full animate-bounce delay-100"></div>
-                  <div className="w-1 h-1 bg-indigo-400 rounded-full animate-bounce delay-200"></div>
-                </div>
-                <span className="text-xs text-indigo-400 font-medium">
-                  {typingUser} is typing...
-                </span>
+          {selectedRoom && (
+            <div className="h-16 px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+              <div>
+                <h2 className="text-lg font-semibold">{selectedRoom.name}</h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {onlineUsers.length} online • {messages.length} messages
+                </p>
               </div>
             </div>
           )}
 
-          {/* Messages Container */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {messages.length === 0 && selectedRoom ? (
-              <div className="h-full flex flex-col items-center justify-center text-center">
-                <div className="w-20 h-20 bg-gray-800/50 rounded-full flex items-center justify-center mb-4">
-                  <MessageSquare className="w-10 h-10 text-gray-600" />
+          {/* Typing Indicator */}
+          {typingUser && selectedRoom && (
+            <div className="px-6 py-2 text-sm text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
+              {typingUser} is typing...
+            </div>
+          )}
+
+          {/* Messages - Large and Readable */}
+          <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+            {!selectedRoom ? (
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center">
+                  <MessageSquare className="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400">Select a room to start chatting</p>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-400">No messages yet</h3>
-                <p className="text-sm text-gray-500 mt-1">Be the first to send a message!</p>
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="h-full flex items-center justify-center">
+                <p className="text-gray-500 dark:text-gray-400">No messages yet. Say hello!</p>
               </div>
             ) : (
               messages.map((msg) => (
-                <div
-                  key={msg._id}
-                  className="group flex gap-3 animate-fade-in"
-                >
-                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-semibold">
-                    {msg.user[0].toUpperCase()}
+                <div key={msg._id} className="space-y-1">
+                  {/* Sender info - small */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {msg.user}
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-baseline gap-2 mb-1">
-                      <span className="font-semibold text-sm">{msg.user}</span>
-                      <span className="text-xs text-gray-500">
-                        {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+                  
+                  {/* Message - LARGE TEXT */}
+                  {msg.isDeleted ? (
+                    <div className="text-gray-400 dark:text-gray-600 italic text-base">
+                      This message was deleted
                     </div>
-                    <div className={`
-                      relative bg-gray-800/50 rounded-2xl px-4 py-2 max-w-md
-                      ${msg.isDeleted ? 'opacity-60' : 'hover:bg-gray-800/70 transition'}
-                    `}>
-                      {msg.isDeleted ? (
-                        <em className="text-sm text-gray-400">This message was deleted</em>
+                  ) : (
+                    <div className="text-gray-900 dark:text-gray-100 text-base leading-relaxed">
+                      {msg.message}
+                    </div>
+                  )}
+                  
+                  {/* Message actions */}
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                      {msg.isRead ? (
+                        <>
+                          <CheckCheck className="w-3 h-3" />
+                          Read
+                        </>
                       ) : (
-                        <p className="text-sm break-words">{msg.message}</p>
+                        <>
+                          <Check className="w-3 h-3" />
+                          Sent
+                        </>
                       )}
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-gray-500 flex items-center gap-1">
-                        {msg.isRead ? (
-                          <>
-                            <CheckCheck className="w-3 h-3 text-indigo-400" />
-                            <span className="text-indigo-400">Read</span>
-                          </>
-                        ) : (
-                          <>
-                            <Check className="w-3 h-3" />
-                            <span>Sent</span>
-                          </>
-                        )}
-                      </span>
-                      {!msg.isDeleted && (
-                        <button
-                          onClick={() => deleteMessage(msg)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 text-xs flex items-center gap-1"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          Delete
-                        </button>
-                      )}
-                    </div>
+                    </span>
+                    {!msg.isDeleted && (
+                      <button
+                        onClick={() => deleteMessage(msg)}
+                        className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Delete
+                      </button>
+                    )}
                   </div>
                 </div>
               ))
@@ -408,82 +360,39 @@ const ChatRoom = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area - Modern */}
+          {/* Input Area */}
           {selectedRoom && (
-            <div className="border-t border-gray-700/50 p-4 bg-gray-900/30 backdrop-blur-xl">
-              <div className="flex gap-3 items-end">
-                <button className="p-2 hover:bg-gray-800 rounded-xl transition text-gray-400 hover:text-indigo-400">
-                  <Paperclip className="w-5 h-5" />
-                </button>
-                <button className="p-2 hover:bg-gray-800 rounded-xl transition text-gray-400 hover:text-indigo-400">
-                  <Smile className="w-5 h-5" />
-                </button>
-                <div className="flex-1 relative">
-                  <textarea
-                    placeholder="Type a message..."
-                    value={message}
-                    onChange={(e) => {
-                      setMessage(e.target.value);
-                      socket?.emit("typing", selectedRoom?._id);
-                      if (typingTimeout) clearTimeout(typingTimeout);
-                      const timeout = setTimeout(() => {
-                        socket?.emit("stop_typing", selectedRoom?._id);
-                      }, 1000);
-                      setTypingTimeout(timeout);
-                    }}
-                    onKeyPress={handleKeyPress}
-                    rows={1}
-                    className="w-full bg-gray-800/50 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 resize-none overflow-y-auto max-h-32"
-                  />
-                </div>
+            <div className="border-t border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-900">
+              <div className="flex gap-3">
+                <textarea
+                  placeholder="Type a message..."
+                  value={message}
+                  onChange={(e) => {
+                    setMessage(e.target.value);
+                    socket?.emit("typing", selectedRoom?._id);
+                    if (typingTimeout) clearTimeout(typingTimeout);
+                    const timeout = setTimeout(() => {
+                      socket?.emit("stop_typing", selectedRoom?._id);
+                    }, 1000);
+                    setTypingTimeout(timeout);
+                  }}
+                  onKeyPress={handleKeyPress}
+                  rows={1}
+                  className="flex-1 px-4 py-2.5 text-base border border-gray-200 dark:border-gray-800 rounded-lg bg-gray-50 dark:bg-gray-950 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                />
                 <button
                   onClick={sendMessage}
                   disabled={!message.trim()}
-                  className="px-5 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:shadow-lg rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 flex items-center gap-2"
+                  className="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition flex items-center gap-2 text-sm font-medium"
                 >
                   <Send className="w-4 h-4" />
-                  <span className="hidden sm:inline">Send</span>
-                </button>
-                <button className="p-2 hover:bg-gray-800 rounded-xl transition text-gray-400 hover:text-indigo-400 lg:hidden">
-                  <Mic className="w-5 h-5" />
+                  Send
                 </button>
               </div>
             </div>
           )}
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.3s ease-out;
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-          width: 6px;
-          height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-          background: rgba(31, 41, 55, 0.5);
-          border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-          background: rgba(99, 102, 241, 0.5);
-          border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-          background: rgba(99, 102, 241, 0.8);
-        }
-      `}</style>
     </div>
   );
 };
