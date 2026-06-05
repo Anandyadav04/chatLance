@@ -25,6 +25,7 @@ const messageSocket = (io, socket) => {
             message: newMessage.message,
             roomId: newMessage.roomId,
             createdAt: newMessage.createdAt,
+            isRead: newMessage.isRead,
           }
         );
 
@@ -36,24 +37,24 @@ const messageSocket = (io, socket) => {
     }
   );
 
-    socket.on(
-      "typing",
-      (roomId) => {
+  socket.on(
+    "typing",
+    (roomId) => {
 
-        console.log(
-          `${socket.user.username} typing in room ${roomId}`
-        );
+      console.log(
+        `${socket.user.username} typing in room ${roomId}`
+      );
 
-        socket.to(roomId).emit(
-          "user_typing",
-          {
-            username:
-              socket.user.username,
-          }
-        );
+      socket.to(roomId).emit(
+        "user_typing",
+        {
+          username:
+            socket.user.username,
+        }
+      );
 
-      }
-    );
+    }
+  );
 
   socket.on(
     "stop_typing",
@@ -66,6 +67,43 @@ const messageSocket = (io, socket) => {
             socket.user.username,
         }
       );
+
+    }
+  );
+
+  socket.on(
+    "mark_read",
+    async ({
+      roomId,
+      messageId,
+    }) => {
+
+      try {
+
+        const message =
+          await Message.findByIdAndUpdate(
+            messageId,
+            {
+              isRead: true,
+            },
+            {
+              new: true,
+            }
+          );
+
+        io.to(roomId).emit(
+          "message_read",
+          {
+            messageId:
+              message._id,
+          }
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+      }
 
     }
   );

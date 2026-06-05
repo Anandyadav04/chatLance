@@ -110,10 +110,36 @@ const ChatRoom = () => {
 
       const formattedMessages =
         res.data.map((msg) => ({
-          user: msg.sender.username,
-          message: msg.message,
-          createdAt: msg.createdAt,
+          _id: msg._id,
+          user:
+            msg.sender.username,
+          message:
+            msg.message,
+          createdAt:
+            msg.createdAt,
+          isRead:
+            msg.isRead,
         }));
+
+      formattedMessages.forEach(
+        (msg) => {
+
+          if (!msg.isRead) {
+
+            socket?.emit(
+              "mark_read",
+              {
+                roomId:
+                  selectedRoom._id,
+                messageId:
+                  msg._id,
+              }
+            );
+
+          }
+
+        }
+      );
 
       setMessages(formattedMessages);
 
@@ -182,6 +208,24 @@ const ChatRoom = () => {
       () => {
 
         setTypingUser("");
+
+      }
+    );
+
+    newSocket.on(
+      "message_read",
+      ({ messageId }) => {
+
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg._id === messageId
+              ? {
+                  ...msg,
+                  isRead: true,
+                }
+              : msg
+          )
+        );
 
       }
     );
@@ -322,11 +366,20 @@ const ChatRoom = () => {
         {messages.map(
           (msg, index) => (
 
-            <div key={index}>
+            <div key={msg._id}>
+
               <strong>
                 {msg.user}
               </strong>
+
               : {msg.message}
+
+              {" "}
+
+              {msg.isRead
+                ? "✓✓ Read"
+                : "✓ Sent"}
+
             </div>
 
           )
