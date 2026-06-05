@@ -108,6 +108,57 @@ const messageSocket = (io, socket) => {
     }
   );
 
+  socket.on(
+    "delete_message",
+    async ({
+      messageId,
+      roomId,
+    }) => {
+
+      try {
+
+        const message =
+          await Message.findById(
+            messageId
+          );
+
+        if (!message)
+          return;
+
+        // Only sender can delete
+        if (
+          message.sender.toString() !==
+          socket.user._id.toString()
+        ) {
+
+          return;
+
+        }
+
+        message.isDeleted =
+          true;
+
+        message.deletedAt =
+          new Date();
+
+        await message.save();
+
+        io.to(roomId).emit(
+          "message_deleted",
+          {
+            messageId,
+          }
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+      }
+
+    }
+  );
+
 };
 
 export default messageSocket;

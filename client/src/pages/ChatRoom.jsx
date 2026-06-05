@@ -111,15 +111,12 @@ const ChatRoom = () => {
       const formattedMessages =
         res.data.map((msg) => ({
           _id: msg._id,
-          user:
-            msg.sender.username,
-          message:
-            msg.message,
-          createdAt:
-            msg.createdAt,
-          isRead:
-            msg.isRead,
-        }));
+          user: msg.sender.username,
+          message: msg.message,
+          createdAt: msg.createdAt,
+          isRead: msg.isRead,
+          isDeleted: msg.isDeleted,
+      }));
 
       formattedMessages.forEach(
         (msg) => {
@@ -230,6 +227,24 @@ const ChatRoom = () => {
       }
     );
 
+    newSocket.on(
+      "message_deleted",
+      ({ messageId }) => {
+
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg._id === messageId
+              ? {
+                  ...msg,
+                  isDeleted: true,
+                }
+              : msg
+          )
+        );
+
+      }
+    );
+
     return () => {
 
       newSocket.disconnect();
@@ -273,6 +288,22 @@ const ChatRoom = () => {
     );
 
     setMessage("");
+
+  };
+
+  const deleteMessage =
+    (msg) => {
+
+    socket.emit(
+      "delete_message",
+      {
+        messageId:
+          msg._id,
+
+        roomId:
+          selectedRoom._id,
+      }
+    );
 
   };
 
@@ -366,21 +397,43 @@ const ChatRoom = () => {
         {messages.map(
           (msg, index) => (
 
-            <div key={msg._id}>
+          <div key={msg._id}>
 
-              <strong>
-                {msg.user}
-              </strong>
+            {msg.isDeleted ? (
 
-              : {msg.message}
+              <em>
+                This message was deleted
+              </em>
 
-              {" "}
+            ) : (
 
-              {msg.isRead
-                ? "✓✓ Read"
-                : "✓ Sent"}
+              <>
 
-            </div>
+                <strong>
+                  {msg.user}
+                </strong>
+
+                : {msg.message}
+
+                {" "}
+
+                {msg.isRead
+                  ? "✓✓ Read"
+                  : "✓ Sent"}
+
+                <button
+                  onClick={() =>
+                    deleteMessage(msg)
+                  }
+                >
+                  Delete
+                </button>
+
+              </>
+
+            )}
+
+          </div>
 
           )
         )}
