@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react"; // Add React and useState
 import { useNavigate } from "react-router-dom";
 import { MessageSquare, ArrowRight, Users, Lock, Zap } from "lucide-react";
+import image from "../assets/image.png"
 
 // FadeInSection component - fixed with proper imports
 const FadeInSection = ({ children }) => {
@@ -100,7 +101,7 @@ function Home() {
             <div className="relative">
               <div className="absolute -inset-4 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-3xl blur-2xl opacity-30"></div>
               <img
-                src="https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800&auto=format"
+                src={image}
                 alt="Chat interface preview"
                 className="relative rounded-2xl shadow-2xl border border-gray-200 w-full object-cover"
               />
