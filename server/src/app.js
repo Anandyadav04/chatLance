@@ -33,10 +33,12 @@ app.use(limiter);
 import authRoutes from "./routes/authRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import roomRoutes from "./routes/roomRoutes.js";
+import conversationRoutes from "./routes/conversationRoutes.js";
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/rooms", roomRoutes);
+app.use("/api/conversations", conversationRoutes);
 
 
 app.get("/", (req, res) => {
