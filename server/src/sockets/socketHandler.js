@@ -8,6 +8,7 @@ import roomSocket from "./roomSocket.js";
 import messageSocket from "./messageSocket.js";
 
 import onlineUsers from "../services/onlineUsers.js";
+import directMessageSocket from "./directMessageSocket.js";
 
 const socketHandler = (io) => {
 
@@ -135,6 +136,11 @@ const socketHandler = (io) => {
       );
 
       messageSocket(
+        io,
+        socket
+      );
+
+      directMessageSocket(
         io,
         socket
       );
