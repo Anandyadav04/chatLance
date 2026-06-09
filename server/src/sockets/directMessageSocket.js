@@ -29,7 +29,7 @@ const directMessageSocket =
             )
             .populate(
               "sender",
-              "username"
+              "_id username"
             );
 
         const conversation =
@@ -81,6 +81,10 @@ const directMessageSocket =
   );
 
   socket.on("mark_dm_read", async ({ messageId }) => {
+		  console.log(
+				"DM READ EVENT",
+				messageId
+			);
     try {
         await DirectMessage.findByIdAndUpdate(
         messageId,
@@ -98,19 +102,29 @@ const directMessageSocket =
 
 	socket.on("delete_dm", async ({ messageId }) => {
 		try {
-			await DirectMessage.findByIdAndUpdate(
-			messageId,
-			{
-					isDeleted: true,
-			}
+			const message = await DirectMessage.findById(
+				messageId
 			);
 
+			if (!message) return;
+
+			if (
+				message.sender.toString() !==
+				socket.user._id.toString()
+			) {
+				return;
+			}
+
+			message.isDeleted = true;
+
+			await message.save();
+
 			io.emit("dm_deleted", {
-			messageId,
+				messageId,
 			});
 
 		} catch (error) {
-				console.error(error);
+			console.error(error);
 		}
 	});
 

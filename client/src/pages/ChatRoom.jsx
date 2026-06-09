@@ -104,6 +104,7 @@ const ChatRoom = () => {
       const formattedMessages = res.data.map((msg) => ({
         _id: msg._id,
         user: msg.sender.username,
+        senderId: msg.sender._id,
         message: msg.message,
         createdAt: msg.createdAt,
         isRead: msg.isRead,
@@ -132,6 +133,8 @@ const ChatRoom = () => {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      setConversations(res.data);
 
       const savedConversation =
         localStorage.getItem(
@@ -230,12 +233,29 @@ const ChatRoom = () => {
     });
     newSocket.on("receive_dm", (message) => {
 
-      setDmMessages((prev) => [
-        ...prev,
-        message,
-      ]);
+      console.log("DM RECEIVED", message);
+      console.log("selectedConversation", selectedConversation);
+      console.log("currentUser", currentUser);
+
+      setDmMessages((prev) => [...prev, message]);
+
+      if (
+        selectedConversation &&
+        message.sender._id !== currentUser.id
+      ) {
+        console.log("EMITTING READ");
+
+        newSocket.emit("mark_dm_read", {
+          messageId: message._id,
+        });
+      }
+
     });
     newSocket.on("dm_read", ({ messageId }) => {
+      console.log(
+        "DM READ RECEIVED",
+        messageId
+      );
       setDmMessages((prev) =>
         prev.map((msg) =>
           msg._id === messageId
@@ -341,12 +361,20 @@ const ChatRoom = () => {
   };
 
   const deleteMessage = (msg) => {
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this message?"
+    );
+
+    if (!confirmed) return;
+
     socket.emit("delete_message", {
       messageId: msg._id,
       roomId: selectedRoom._id,
     });
-  };
 
+  };
+  
   const logout = () => {
     localStorage.removeItem("token");
     socket?.disconnect();
@@ -638,7 +666,12 @@ const ChatRoom = () => {
                         </>
                       ))}
                     </span>
-                    {!msg.isDeleted && (
+                    {!msg.isDeleted &&
+                    (
+                      selectedConversation
+                        ? msg.sender?._id === currentUser.id
+                        : msg.senderId === currentUser.id
+                    ) && (
                       <button
                         onClick={() =>
                           selectedConversation
