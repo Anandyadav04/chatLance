@@ -75,13 +75,44 @@ const directMessageSocket =
         );
 
       }
-      console.log(
-        "DM SENT"
-        );
 
     }
 
   );
+
+  socket.on("mark_dm_read", async ({ messageId }) => {
+    try {
+        await DirectMessage.findByIdAndUpdate(
+        messageId,
+        { isRead: true }
+        );
+
+        io.emit("dm_read", {
+        messageId,
+        });
+
+    } catch (error) {
+        console.error(error);
+    }
+    });
+
+	socket.on("delete_dm", async ({ messageId }) => {
+		try {
+			await DirectMessage.findByIdAndUpdate(
+			messageId,
+			{
+					isDeleted: true,
+			}
+			);
+
+			io.emit("dm_deleted", {
+			messageId,
+			});
+
+		} catch (error) {
+				console.error(error);
+		}
+	});
 
 };
 

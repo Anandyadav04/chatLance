@@ -134,6 +134,21 @@ const ChatRoom = () => {
 
       setDmMessages(res.data);
 
+      res.data.forEach((msg) => {
+
+        if (!msg.isRead) {
+
+          socket?.emit(
+            "mark_dm_read",
+            {
+              messageId: msg._id,
+            }
+          );
+
+        }
+
+      });
+
     } catch (error) {
       console.error(error);
     }
@@ -167,6 +182,29 @@ const ChatRoom = () => {
         ...prev,
         message,
       ]);
+
+    });
+    newSocket.on("dm_read", ({ messageId }) => {
+      setDmMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === messageId
+            ? { ...msg, isRead: true }
+            : msg
+        )
+      );
+
+    });
+    newSocket.on("dm_deleted", ({ messageId }) => {
+      setDmMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === messageId
+            ? {
+                ...msg,
+                isDeleted: true,
+              }
+            : msg
+        )
+      );
 
     });
     newSocket.on("online_users", (users) => setOnlineUsers(users));
@@ -212,6 +250,17 @@ const ChatRoom = () => {
     });
 
     setMessage("");
+
+  };
+
+  const deleteDm = (msg) => {
+
+    socket.emit(
+      "delete_dm",
+      {
+        messageId: msg._id,
+      }
+    );
 
   };
 
@@ -510,7 +559,11 @@ const ChatRoom = () => {
                     </span>
                     {!msg.isDeleted && (
                       <button
-                        onClick={() => deleteMessage(msg)}
+                        onClick={() =>
+                          selectedConversation
+                            ? deleteDm(msg)
+                            : deleteMessage(msg)
+                        }
                         className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1"
                       >
                         <Trash2 className="w-3 h-3" />
