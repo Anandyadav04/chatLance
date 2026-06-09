@@ -114,6 +114,42 @@ const directMessageSocket =
 		}
 	});
 
+	socket.on(
+		"dm_typing",
+		({ conversationId }) => {
+
+			socket.to(conversationId).emit(
+				"user_dm_typing",
+				{
+					username:
+						socket.user.username,
+				}
+			);
+
+		}
+	);
+
+	socket.on(
+		"dm_stop_typing",
+		({ conversationId }) => {
+
+			socket.to(conversationId).emit(
+				"user_dm_stop_typing"
+			);
+
+		}
+	);
+
+	socket.on(
+		"join_conversation",
+		(conversationId) => {
+
+			socket.join(
+				conversationId
+			);
+
+		}
+	);
 };
 
 export default directMessageSocket;

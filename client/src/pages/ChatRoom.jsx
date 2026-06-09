@@ -156,14 +156,19 @@ const ChatRoom = () => {
 
   useEffect(() => {
 
-    if (!selectedConversation)
+    if (!selectedConversation || !socket)
       return;
+
+    socket.emit(
+      "join_conversation",
+      selectedConversation._id
+    );
 
     fetchDirectMessages(
       selectedConversation._id
     );
 
-  }, [selectedConversation]);
+  }, [selectedConversation, socket]);
 
   useEffect(() => {
     fetchRooms();
@@ -182,7 +187,6 @@ const ChatRoom = () => {
         ...prev,
         message,
       ]);
-
     });
     newSocket.on("dm_read", ({ messageId }) => {
       setDmMessages((prev) =>
@@ -192,7 +196,6 @@ const ChatRoom = () => {
             : msg
         )
       );
-
     });
     newSocket.on("dm_deleted", ({ messageId }) => {
       setDmMessages((prev) =>
@@ -205,8 +208,25 @@ const ChatRoom = () => {
             : msg
         )
       );
-
     });
+    newSocket.on(
+      "user_dm_typing",
+      (data) => {
+
+        setTypingUser(
+          data.username
+        );
+
+      }
+    );
+    newSocket.on(
+      "user_dm_stop_typing",
+      () => {
+
+        setTypingUser("");
+
+      }
+    );
     newSocket.on("online_users", (users) => setOnlineUsers(users));
     newSocket.on("user_typing", (data) => setTypingUser(data.username));
     newSocket.on("user_stop_typing", () => setTypingUser(""));
@@ -499,7 +519,7 @@ const ChatRoom = () => {
           )}
 
           {/* Typing Indicator */}
-          {typingUser && selectedRoom && (
+          {typingUser && (selectedRoom || selectedConversation) && (
             <div className="px-6 py-2 text-sm text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
               {typingUser} is typing...
             </div>
@@ -586,10 +606,36 @@ const ChatRoom = () => {
                   value={message}
                   onChange={(e) => {
                     setMessage(e.target.value);
-                    socket?.emit("typing", selectedRoom?._id);
+                    if (selectedConversation) {
+                      socket?.emit(
+                        "dm_typing",
+                        {
+                          conversationId:
+                            selectedConversation._id,
+                        }
+                      );
+                    } else {
+                      socket?.emit(
+                        "typing",
+                        selectedRoom?._id
+                      );
+                    }
                     if (typingTimeout) clearTimeout(typingTimeout);
                     const timeout = setTimeout(() => {
-                      socket?.emit("stop_typing", selectedRoom?._id);
+                      if (selectedConversation) {
+                        socket?.emit(
+                          "dm_stop_typing",
+                          {
+                            conversationId:
+                              selectedConversation._id,
+                          }
+                        );
+                      } else {
+                        socket?.emit(
+                          "stop_typing",
+                          selectedRoom?._id
+                        );
+                      }
                     }, 1000);
                     setTypingTimeout(timeout);
                   }}
