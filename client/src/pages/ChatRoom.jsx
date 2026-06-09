@@ -30,6 +30,11 @@ const ChatRoom = () => {
   const [typingTimeout, setTypingTimeout] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateRoom, setShowCreateRoom] = useState(false);
+  const [conversations, setConversations] = useState([]);
+  const [selectedConversation, setSelectedConversation] = useState(null);
+  const currentUser = JSON.parse(
+    localStorage.getItem("user")
+  );
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -94,8 +99,25 @@ const ChatRoom = () => {
     }
   };
 
+  const fetchConversations = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await api.get("/conversations", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setConversations(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     fetchRooms();
+    fetchConversations();
     const token = localStorage.getItem("token");
     const newSocket = createSocketConnection(token);
     setSocket(newSocket);
@@ -243,6 +265,55 @@ const ChatRoom = () => {
                     </div>
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Direct Messages */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Direct Messages
+                </h3>
+                <span className="text-xs text-gray-400">
+                  {conversations.length}
+                </span>
+              </div>
+
+              <div className="space-y-1">
+                {conversations.map((conversation) => {
+
+                  const otherUser =
+                    conversation.participants.find(
+                      (user) =>
+                        user._id !== currentUser.id
+                    );
+
+                  return (
+                    <button
+                      key={conversation._id}
+                      onClick={() => {
+                        setSelectedConversation(
+                          conversation
+                        );
+                        setSelectedRoom(null);
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition text-sm ${
+                        selectedConversation?._id === conversation._id
+                          ? "bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400"
+                          : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+
+                        <span>
+                          {otherUser?.username}
+                        </span>
+                      </div>
+                    </button>
+                  );
+
+                })}
               </div>
             </div>
 

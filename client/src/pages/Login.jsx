@@ -23,7 +23,13 @@ const Login = () => {
       });
 
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem(
+        "user",
+        JSON.stringify(res.data.user)
+      );  
+
       navigate("/chat");
+      
     } catch (error) {
       setError(error.response?.data?.message || "Login failed. Please try again.");
       console.error(error.response?.data);
