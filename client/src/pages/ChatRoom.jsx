@@ -40,7 +40,7 @@ const ChatRoom = () => {
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, dmMessages]);
 
   const createRoom = async (roomData) => {
     try {
@@ -161,6 +161,14 @@ const ChatRoom = () => {
     newSocket.on("receive_message", (data) => {
       setMessages((prev) => [...prev, data]);
     });
+    newSocket.on("receive_dm", (message) => {
+
+      setDmMessages((prev) => [
+        ...prev,
+        message,
+      ]);
+
+    });
     newSocket.on("online_users", (users) => setOnlineUsers(users));
     newSocket.on("user_typing", (data) => setTypingUser(data.username));
     newSocket.on("user_stop_typing", () => setTypingUser(""));
@@ -189,6 +197,24 @@ const ChatRoom = () => {
     socket.emit("join_room", selectedRoom?._id);
   }, [selectedRoom, socket]);
 
+  const sendDirectMessage = () => {
+
+    if (!message.trim())
+      return;
+
+    if (!selectedConversation)
+      return;
+
+    socket.emit("send_dm", {
+      conversationId:
+        selectedConversation._id,
+      message,
+    });
+
+    setMessage("");
+
+  };
+
   const sendMessage = () => {
     if (!message.trim() || !selectedRoom) return;
     socket.emit("send_message", {
@@ -212,10 +238,28 @@ const ChatRoom = () => {
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+
+    if (
+      e.key === "Enter" &&
+      !e.shiftKey
+    ) {
+
       e.preventDefault();
-      sendMessage();
+
+      if (
+        selectedConversation
+      ) {
+
+        sendDirectMessage();
+
+      } else {
+
+        sendMessage();
+
+      }
+
     }
+
   };
 
   const filteredRooms = rooms.filter(room =>
@@ -501,7 +545,11 @@ const ChatRoom = () => {
                   className="flex-1 px-4 py-2.5 text-base border border-gray-200 dark:border-gray-800 rounded-lg bg-gray-50 dark:bg-gray-950 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
                 />
                 <button
-                  onClick={sendMessage}
+                  onClick={
+                    selectedConversation
+                      ? sendDirectMessage
+                      : sendMessage
+                  }
                   disabled={!message.trim()}
                   className="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition flex items-center gap-2 text-sm font-medium"
                 >
