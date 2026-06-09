@@ -32,6 +32,7 @@ const ChatRoom = () => {
   const [showCreateRoom, setShowCreateRoom] = useState(false);
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
+  const [dmMessages, setDmMessages] = useState([]);
   const currentUser = JSON.parse(
     localStorage.getItem("user")
   );
@@ -115,6 +116,40 @@ const ChatRoom = () => {
     }
   };
 
+  const fetchDirectMessages = async (
+    conversationId
+  ) => {
+    try {
+      const token =
+        localStorage.getItem("token");
+
+      const res = await api.get(
+        `/direct-messages/${conversationId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setDmMessages(res.data);
+
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+
+    if (!selectedConversation)
+      return;
+
+    fetchDirectMessages(
+      selectedConversation._id
+    );
+
+  }, [selectedConversation]);
+
   useEffect(() => {
     fetchRooms();
     fetchConversations();
@@ -187,6 +222,8 @@ const ChatRoom = () => {
     room.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const displayedMessages = selectedConversation ? dmMessages : messages;
+
   return (
     <div className="h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col">
       {/* Simple Navbar */}
@@ -252,7 +289,10 @@ const ChatRoom = () => {
                 {filteredRooms.map((room) => (
                   <button
                     key={room._id}
-                    onClick={() => setSelectedRoom(room)}
+                    onClick={() => {
+                      setSelectedRoom(room);
+                      setSelectedConversation(null);
+                    }}
                     className={`w-full text-left px-3 py-2 rounded-lg transition text-sm ${
                       selectedRoom?._id === room._id
                         ? "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
@@ -348,9 +388,18 @@ const ChatRoom = () => {
           {selectedRoom && (
             <div className="h-16 px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
               <div>
-                <h2 className="text-lg font-semibold">{selectedRoom.name}</h2>
+                <h2 className="text-lg font-semibold">
+                  {selectedRoom
+                    ? selectedRoom.name
+                    : selectedConversation?.participants?.find(
+                        (u) => u._id !== currentUser.id
+                      )?.username}
+                </h2>
+
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {onlineUsers.length} online • {messages.length} messages
+                  {selectedRoom
+                    ? `${onlineUsers.length} online • ${messages.length} messages`
+                    : `${dmMessages.length} messages`}
                 </p>
               </div>
             </div>
@@ -365,24 +414,24 @@ const ChatRoom = () => {
 
           {/* Messages - Large and Readable */}
           <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-            {!selectedRoom ? (
+            {!selectedRoom && !selectedConversation ? (
               <div className="h-full flex items-center justify-center">
                 <div className="text-center">
                   <MessageSquare className="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
                   <p className="text-gray-500 dark:text-gray-400">Select a room to start chatting</p>
                 </div>
               </div>
-            ) : messages.length === 0 ? (
+            ) : displayedMessages.length === 0 ? (
               <div className="h-full flex items-center justify-center">
                 <p className="text-gray-500 dark:text-gray-400">No messages yet. Say hello!</p>
               </div>
             ) : (
-              messages.map((msg) => (
+              displayedMessages.map((msg) => (
                 <div key={msg._id} className="space-y-1">
                   {/* Sender info - small */}
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {msg.user}
+                      {msg.user || msg.sender?.username}
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -403,7 +452,7 @@ const ChatRoom = () => {
                   {/* Message actions */}
                   <div className="flex items-center gap-3 mt-1">
                     <span className="text-xs text-gray-400 flex items-center gap-1">
-                      {msg.isRead ? (
+                      {msg.isRead !== undefined && ( msg.isRead ? (
                         <>
                           <CheckCheck className="w-3 h-3" />
                           Read
@@ -413,7 +462,7 @@ const ChatRoom = () => {
                           <Check className="w-3 h-3" />
                           Sent
                         </>
-                      )}
+                      ))}
                     </span>
                     {!msg.isDeleted && (
                       <button
@@ -432,7 +481,7 @@ const ChatRoom = () => {
           </div>
 
           {/* Input Area */}
-          {selectedRoom && (
+          {(selectedRoom || selectedConversation)  && (
             <div className="border-t border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-900">
               <div className="flex gap-3">
                 <textarea
