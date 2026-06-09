@@ -63,8 +63,31 @@ const ChatRoom = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setRooms(res.data);
-      if (res.data.length > 0) {
-        setSelectedRoom(res.data[0]);
+      const savedRoom =
+        localStorage.getItem(
+          "selectedRoom"
+        );
+
+      if (savedRoom) {
+
+        const room =
+          res.data.find(
+            (r) =>
+              r._id === savedRoom
+          );
+
+        if (room) {
+          setSelectedRoom(room);
+        }
+
+      } else if (
+        res.data.length > 0
+      ) {
+
+        setSelectedRoom(
+          res.data[0]
+        );
+
       }
     } catch (error) {
       console.error(error);
@@ -110,7 +133,31 @@ const ChatRoom = () => {
         },
       });
 
-      setConversations(res.data);
+      const savedConversation =
+        localStorage.getItem(
+          "selectedConversation"
+        );
+
+      if (savedConversation) {
+
+        const conversation =
+          res.data.find(
+            (c) =>
+              c._id ===
+              savedConversation
+          );
+
+        if (conversation) {
+
+          setSelectedConversation(
+            conversation
+          );
+
+          setSelectedRoom(null);
+
+        }
+
+      }
     } catch (error) {
       console.error(error);
     }
@@ -405,6 +452,14 @@ const ChatRoom = () => {
                     onClick={() => {
                       setSelectedRoom(room);
                       setSelectedConversation(null);
+
+                      localStorage.setItem(
+                        "selectedRoom",
+                        room._id
+                      );
+                      localStorage.removeItem(
+                        "selectedConversation"
+                      );
                     }}
                     className={`w-full text-left px-3 py-2 rounded-lg transition text-sm ${
                       selectedRoom?._id === room._id
@@ -445,10 +500,16 @@ const ChatRoom = () => {
                     <button
                       key={conversation._id}
                       onClick={() => {
-                        setSelectedConversation(
-                          conversation
-                        );
+                        setSelectedConversation(conversation);
                         setSelectedRoom(null);
+
+                        localStorage.setItem(
+                          "selectedConversation",
+                          conversation._id
+                        );
+                        localStorage.removeItem(
+                          "selectedRoom"
+                        );
                       }}
                       className={`w-full text-left px-3 py-2 rounded-lg transition text-sm ${
                         selectedConversation?._id === conversation._id
