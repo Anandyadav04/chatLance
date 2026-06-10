@@ -37,13 +37,20 @@ export const createConversation =
         });
 
       if (existingConversation) {
-        return res
-          .status(200)
-          .json(
-            existingConversation
-          );
 
-      }
+				const populatedConversation =
+					await Conversation.findById(
+						existingConversation._id
+					).populate(
+						"participants",
+						"username email"
+					);
+
+				return res
+					.status(200)
+					.json(populatedConversation);
+
+			}
 
       const conversation =
         await Conversation.create({
@@ -53,11 +60,17 @@ export const createConversation =
           ],
         });
 
-      res
-        .status(201)
-        .json(
-          conversation
-        );
+			const populatedConversation =
+				await Conversation.findById(
+					conversation._id
+				).populate(
+					"participants",
+					"username email"
+				);
+
+			res
+				.status(201)
+				.json(populatedConversation);
 
     } catch (error) {
 

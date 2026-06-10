@@ -127,6 +127,34 @@ const ChatRoom = () => {
     }
   };
 
+  const createConversation = async (userId) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await api.post(
+        "/conversations",
+        { userId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      await fetchConversations();
+
+      setSelectedConversation(res.data);
+      setSelectedRoom(null);
+
+      setShowUserSearch(false);
+      setSearchResults([]);
+      setSearchQuery("");
+
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const fetchConversations = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -811,12 +839,15 @@ const ChatRoom = () => {
                 <div className="mt-3 space-y-2">
 
                   {searchResults.map((user) => (
-                    <div
+                    <button
                       key={user._id}
-                      className="p-2 border rounded-lg"
+                      onClick={() =>
+                        createConversation(user._id)
+                      }
+                      className="w-full text-left p-2 border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
                     >
                       {user.username}
-                    </div>
+                    </button>
                   ))}
 
                 </div>
