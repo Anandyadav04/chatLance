@@ -28,11 +28,14 @@ const ChatRoom = () => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [typingUser, setTypingUser] = useState("");
   const [typingTimeout, setTypingTimeout] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [roomSearchQuery, setRoomSearchQuery] = useState("");
   const [showCreateRoom, setShowCreateRoom] = useState(false);
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [dmMessages, setDmMessages] = useState([]);
+  const [showUserSearch, setShowUserSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
   const currentUser = JSON.parse(
     localStorage.getItem("user")
   );
@@ -409,8 +412,28 @@ const ChatRoom = () => {
 
   };
 
+  const searchUsers = async (query) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await api.get(
+        `/users/search?q=${query}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setSearchResults(res.data);
+
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const filteredRooms = rooms.filter(room =>
-    room.name.toLowerCase().includes(searchQuery.toLowerCase())
+    room.name.toLowerCase().includes(roomSearchQuery.toLowerCase())
   );
 
   const displayedMessages = selectedConversation ? dmMessages : messages;
@@ -462,8 +485,8 @@ const ChatRoom = () => {
               <input
                 type="text"
                 placeholder="Search rooms..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={roomSearchQuery}
+                onChange={(e) => setRoomSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
@@ -508,6 +531,12 @@ const ChatRoom = () => {
             </div>
 
             {/* Direct Messages */}
+            <button
+              onClick={() => setShowUserSearch(true)}
+              className="w-full mb-2 px-3 py-2 bg-green-500 text-white rounded-lg text-sm"
+            >
+              New DM
+            </button>
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
@@ -753,6 +782,58 @@ const ChatRoom = () => {
                   Send
                 </button>
               </div>
+            </div>
+          )}
+          {/* Search users */}
+          {showUserSearch && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+
+              <div className="bg-white dark:bg-gray-900 p-4 rounded-lg w-96">
+
+                <h2 className="text-lg font-semibold mb-3">
+                  Start New Conversation
+                </h2>
+
+                <input
+                  type="text"
+                  placeholder="Search users..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+
+                    if (e.target.value.trim()) {
+                      searchUsers(e.target.value);
+                    }
+                  }}
+                  className="w-full border rounded-lg px-3 py-2"
+                />
+
+                <div className="mt-3 space-y-2">
+
+                  {searchResults.map((user) => (
+                    <div
+                      key={user._id}
+                      className="p-2 border rounded-lg"
+                    >
+                      {user.username}
+                    </div>
+                  ))}
+
+                </div>
+
+                <button
+                  onClick={() => {
+                    setShowUserSearch(false);
+                    setSearchResults([]);
+                    setSearchQuery("");
+                  }}
+                  className="mt-3 px-3 py-2 bg-gray-500 text-white rounded-lg"
+                >
+                  Close
+                </button>
+
+              </div>
+
             </div>
           )}
         </div>
