@@ -342,12 +342,15 @@ const ChatRoom = () => {
 
   const deleteDm = (msg) => {
 
-    socket.emit(
-      "delete_dm",
-      {
-        messageId: msg._id,
-      }
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this message?"
     );
+
+    if (!confirmed) return;
+
+    socket.emit("delete_dm", {
+      messageId: msg._id,
+    });
 
   };
 
@@ -374,7 +377,7 @@ const ChatRoom = () => {
     });
 
   };
-  
+
   const logout = () => {
     localStorage.removeItem("token");
     socket?.disconnect();
