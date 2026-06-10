@@ -20,6 +20,7 @@ import {
 const ChatRoom = () => {
   const navigate = useNavigate();
   const messagesEndRef = useRef(null);
+  const selectedConversationRef = useRef(null);
   const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
@@ -36,6 +37,7 @@ const ChatRoom = () => {
   const [showUserSearch, setShowUserSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [unreadCounts, setUnreadCounts] = useState({});
   const currentUser = JSON.parse(
     localStorage.getItem("user")
   );
@@ -44,6 +46,11 @@ const ChatRoom = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, dmMessages]);
+
+  useEffect(() => {
+    selectedConversationRef.current =
+      selectedConversation;
+  }, [selectedConversation]);
 
   const createRoom = async (roomData) => {
     try {
@@ -197,38 +204,48 @@ const ChatRoom = () => {
     }
   };
 
-  const fetchDirectMessages = async (
-    conversationId
-  ) => {
+  const fetchDirectMessages = async (conversationId) => {
     try {
-      const token =
-        localStorage.getItem("token");
+      const token = localStorage.getItem("token");
 
-      const res = await api.get(
-        `/direct-messages/${conversationId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await api.get(`/direct-messages/${conversationId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       setDmMessages(res.data);
 
-      res.data.forEach((msg) => {
+      const unreadMessages = res.data.filter(
+        msg => !msg.isRead && msg.sender?._id !== currentUser.id
+      );
 
-        if (!msg.isRead) {
+      if (unreadMessages.length > 0) {
+        unreadMessages.forEach((msg) => {
+          socket?.emit("mark_dm_read", {
+            messageId: msg._id,
+            conversationId: conversationId,
+          });
+        });
+        
+      }
 
-          socket?.emit(
-            "mark_dm_read",
-            {
-              messageId: msg._id,
-            }
-          );
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-        }
+  const fetchUnreadCounts = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
+      const res = await api.get("/conversations/unread", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+
+      setUnreadCounts(res.data);
 
     } catch (error) {
       console.error(error);
@@ -236,24 +253,16 @@ const ChatRoom = () => {
   };
 
   useEffect(() => {
+    if (!selectedConversation || !socket) return;
 
-    if (!selectedConversation || !socket)
-      return;
-
-    socket.emit(
-      "join_conversation",
-      selectedConversation._id
-    );
-
-    fetchDirectMessages(
-      selectedConversation._id
-    );
-
+    socket.emit("join_conversation", selectedConversation._id);
+    fetchDirectMessages(selectedConversation._id);
   }, [selectedConversation, socket]);
 
   useEffect(() => {
     fetchRooms();
     fetchConversations();
+    fetchUnreadCounts();
     const token = localStorage.getItem("token");
     const newSocket = createSocketConnection(token);
     setSocket(newSocket);
@@ -262,69 +271,88 @@ const ChatRoom = () => {
     newSocket.on("receive_message", (data) => {
       setMessages((prev) => [...prev, data]);
     });
+    
     newSocket.on("receive_dm", (message) => {
-
-      console.log("DM RECEIVED", message);
-      console.log("selectedConversation", selectedConversation);
-      console.log("currentUser", currentUser);
-
       setDmMessages((prev) => [...prev, message]);
 
+      fetchUnreadCounts();
+
       if (
-        selectedConversation &&
+        selectedConversationRef.current &&
+        selectedConversationRef.current._id === message.conversationId &&
         message.sender._id !== currentUser.id
       ) {
-        console.log("EMITTING READ");
-
         newSocket.emit("mark_dm_read", {
           messageId: message._id,
+          conversationId: message.conversationId,
         });
       }
-
     });
-    newSocket.on("dm_read", ({ messageId }) => {
-      console.log(
-        "DM READ RECEIVED",
-        messageId
-      );
-      setDmMessages((prev) =>
-        prev.map((msg) =>
-          msg._id === messageId
-            ? { ...msg, isRead: true }
-            : msg
-        )
-      );
-    });
-    newSocket.on("dm_deleted", ({ messageId }) => {
-      setDmMessages((prev) =>
-        prev.map((msg) =>
-          msg._id === messageId
-            ? {
-                ...msg,
-                isDeleted: true,
-              }
-            : msg
-        )
-      );
-    });
-    newSocket.on(
-      "user_dm_typing",
-      (data) => {
 
-        setTypingUser(
-          data.username
-        );
+  newSocket.on("dm_read", ({ messageId, conversationId, readBy }) => {
 
+    // Update the specific message to show as read
+    setDmMessages((prevMessages) => {
+      let updated = false;
+      const newMessages = prevMessages.map((msg) => {
+        if (msg._id === messageId) {
+          console.log(`Marking message ${messageId} as read`);
+          updated = true;
+          return { ...msg, isRead: true };
+        }
+        return msg;
+      });
+      
+      if (updated) {
+      } else {
+        console.log(`Message ${messageId} not found in current messages`);
       }
-    );
-    newSocket.on(
-      "user_dm_stop_typing",
-      () => {
+      
+      return newMessages;
+    });
+    
+    // Clear unread count for this conversation
+    setUnreadCounts((prev) => ({
+      ...prev,
+      [conversationId]: 0
+    }));
+  });
 
-        setTypingUser("");
+  newSocket.on(
+    "unread_count_update",
+    ({
+      conversationId,
+      unreadCount,
+    }) => {
 
-      }
+      setUnreadCounts(
+        (prev) => ({
+          ...prev,
+          [conversationId]:
+            unreadCount,
+        })
+      );
+
+    }
+  );
+  newSocket.on("dm_deleted", ({ messageId }) => {
+    setDmMessages((prev) =>
+      prev.map((msg) =>
+        msg._id === messageId
+          ? { ...msg, isDeleted: true }
+          : msg
+      )
     );
+  });
+    
+    newSocket.on("user_dm_typing", (data) => {
+      setTypingUser(data.username);
+    });
+    
+    newSocket.on("user_dm_stop_typing", () => {
+      setTypingUser("");
+    });
+    
     newSocket.on("online_users", (users) => setOnlineUsers(users));
     newSocket.on("user_typing", (data) => setTypingUser(data.username));
     newSocket.on("user_stop_typing", () => setTypingUser(""));
@@ -354,35 +382,25 @@ const ChatRoom = () => {
   }, [selectedRoom, socket]);
 
   const sendDirectMessage = () => {
-
-    if (!message.trim())
-      return;
-
-    if (!selectedConversation)
-      return;
+    if (!message.trim()) return;
+    if (!selectedConversation) return;
 
     socket.emit("send_dm", {
-      conversationId:
-        selectedConversation._id,
+      conversationId: selectedConversation._id,
       message,
     });
 
     setMessage("");
-
   };
 
   const deleteDm = (msg) => {
-
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this message?"
-    );
-
+    const confirmed = window.confirm("Are you sure you want to delete this message?");
     if (!confirmed) return;
 
     socket.emit("delete_dm", {
       messageId: msg._id,
+      conversationId: selectedConversation?._id
     });
-
   };
 
   const sendMessage = () => {
@@ -395,18 +413,13 @@ const ChatRoom = () => {
   };
 
   const deleteMessage = (msg) => {
-
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this message?"
-    );
-
+    const confirmed = window.confirm("Are you sure you want to delete this message?");
     if (!confirmed) return;
 
     socket.emit("delete_message", {
       messageId: msg._id,
       roomId: selectedRoom._id,
     });
-
   };
 
   const logout = () => {
@@ -416,45 +429,25 @@ const ChatRoom = () => {
   };
 
   const handleKeyPress = (e) => {
-
-    if (
-      e.key === "Enter" &&
-      !e.shiftKey
-    ) {
-
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-
-      if (
-        selectedConversation
-      ) {
-
+      if (selectedConversation) {
         sendDirectMessage();
-
       } else {
-
         sendMessage();
-
       }
-
     }
-
   };
 
   const searchUsers = async (query) => {
     try {
       const token = localStorage.getItem("token");
-
-      const res = await api.get(
-        `/users/search?q=${query}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
+      const res = await api.get(`/users/search?q=${query}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setSearchResults(res.data);
-
     } catch (error) {
       console.error(error);
     }
@@ -535,13 +528,8 @@ const ChatRoom = () => {
                       setSelectedRoom(room);
                       setSelectedConversation(null);
 
-                      localStorage.setItem(
-                        "selectedRoom",
-                        room._id
-                      );
-                      localStorage.removeItem(
-                        "selectedConversation"
-                      );
+                      localStorage.setItem("selectedRoom", room._id);
+                      localStorage.removeItem("selectedConversation");
                     }}
                     className={`w-full text-left px-3 py-2 rounded-lg transition text-sm ${
                       selectedRoom?._id === room._id
@@ -577,12 +565,9 @@ const ChatRoom = () => {
 
               <div className="space-y-1">
                 {conversations.map((conversation) => {
-
-                  const otherUser =
-                    conversation.participants.find(
-                      (user) =>
-                        user._id !== currentUser.id
-                    );
+                  const otherUser = conversation.participants.find(
+                    (user) => user._id !== currentUser.id
+                  );
 
                   return (
                     <button
@@ -591,13 +576,8 @@ const ChatRoom = () => {
                         setSelectedConversation(conversation);
                         setSelectedRoom(null);
 
-                        localStorage.setItem(
-                          "selectedConversation",
-                          conversation._id
-                        );
-                        localStorage.removeItem(
-                          "selectedRoom"
-                        );
+                        localStorage.setItem("selectedConversation", conversation._id);
+                        localStorage.removeItem("selectedRoom");
                       }}
                       className={`w-full text-left px-3 py-2 rounded-lg transition text-sm ${
                         selectedConversation?._id === conversation._id
@@ -608,13 +588,18 @@ const ChatRoom = () => {
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-green-500"></div>
 
-                        <span>
-                          {otherUser?.username}
-                        </span>
+                        <div className="flex items-center justify-between w-full">
+                          <span>{otherUser?.username}</span>
+
+                          {unreadCounts[conversation._id] > 0 && (
+                            <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                              {unreadCounts[conversation._id]}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </button>
                   );
-
                 })}
               </div>
             </div>
@@ -647,7 +632,7 @@ const ChatRoom = () => {
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col bg-white dark:bg-gray-900">
           {/* Chat Header */}
-          {selectedRoom && (
+          {(selectedRoom || selectedConversation) && (
             <div className="h-16 px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
               <div>
                 <h2 className="text-lg font-semibold">
@@ -674,7 +659,7 @@ const ChatRoom = () => {
             </div>
           )}
 
-          {/* Messages - Large and Readable */}
+          {/* Messages */}
           <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
             {!selectedRoom && !selectedConversation ? (
               <div className="h-full flex items-center justify-center">
@@ -690,7 +675,6 @@ const ChatRoom = () => {
             ) : (
               displayedMessages.map((msg) => (
                 <div key={msg._id} className="space-y-1">
-                  {/* Sender info - small */}
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {msg.user || msg.sender?.username}
@@ -700,7 +684,6 @@ const ChatRoom = () => {
                     </span>
                   </div>
                   
-                  {/* Message - LARGE TEXT */}
                   {msg.isDeleted ? (
                     <div className="text-gray-400 dark:text-gray-600 italic text-base">
                       This message was deleted
@@ -711,10 +694,9 @@ const ChatRoom = () => {
                     </div>
                   )}
                   
-                  {/* Message actions */}
                   <div className="flex items-center gap-3 mt-1">
                     <span className="text-xs text-gray-400 flex items-center gap-1">
-                      {msg.isRead !== undefined && ( msg.isRead ? (
+                      {msg.isRead !== undefined && (msg.isRead ? (
                         <>
                           <CheckCheck className="w-3 h-3" />
                           Read
@@ -726,23 +708,23 @@ const ChatRoom = () => {
                         </>
                       ))}
                     </span>
-                    {!msg.isDeleted &&
-                    (
-                      selectedConversation
+                    {!msg.isDeleted && (
+                      (selectedConversation
                         ? msg.sender?._id === currentUser.id
                         : msg.senderId === currentUser.id
-                    ) && (
-                      <button
-                        onClick={() =>
-                          selectedConversation
-                            ? deleteDm(msg)
-                            : deleteMessage(msg)
-                        }
-                        className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        Delete
-                      </button>
+                      ) && (
+                        <button
+                          onClick={() =>
+                            selectedConversation
+                              ? deleteDm(msg)
+                              : deleteMessage(msg)
+                          }
+                          className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Delete
+                        </button>
+                      )
                     )}
                   </div>
                 </div>
@@ -752,7 +734,7 @@ const ChatRoom = () => {
           </div>
 
           {/* Input Area */}
-          {(selectedRoom || selectedConversation)  && (
+          {(selectedRoom || selectedConversation) && (
             <div className="border-t border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-900">
               <div className="flex gap-3">
                 <textarea
@@ -761,34 +743,20 @@ const ChatRoom = () => {
                   onChange={(e) => {
                     setMessage(e.target.value);
                     if (selectedConversation) {
-                      socket?.emit(
-                        "dm_typing",
-                        {
-                          conversationId:
-                            selectedConversation._id,
-                        }
-                      );
+                      socket?.emit("dm_typing", {
+                        conversationId: selectedConversation._id,
+                      });
                     } else {
-                      socket?.emit(
-                        "typing",
-                        selectedRoom?._id
-                      );
+                      socket?.emit("typing", selectedRoom?._id);
                     }
                     if (typingTimeout) clearTimeout(typingTimeout);
                     const timeout = setTimeout(() => {
                       if (selectedConversation) {
-                        socket?.emit(
-                          "dm_stop_typing",
-                          {
-                            conversationId:
-                              selectedConversation._id,
-                          }
-                        );
+                        socket?.emit("dm_stop_typing", {
+                          conversationId: selectedConversation._id,
+                        });
                       } else {
-                        socket?.emit(
-                          "stop_typing",
-                          selectedRoom?._id
-                        );
+                        socket?.emit("stop_typing", selectedRoom?._id);
                       }
                     }, 1000);
                     setTypingTimeout(timeout);
@@ -798,11 +766,7 @@ const ChatRoom = () => {
                   className="flex-1 px-4 py-2.5 text-base border border-gray-200 dark:border-gray-800 rounded-lg bg-gray-50 dark:bg-gray-950 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
                 />
                 <button
-                  onClick={
-                    selectedConversation
-                      ? sendDirectMessage
-                      : sendMessage
-                  }
+                  onClick={selectedConversation ? sendDirectMessage : sendMessage}
                   disabled={!message.trim()}
                   className="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition flex items-center gap-2 text-sm font-medium"
                 >
@@ -812,12 +776,11 @@ const ChatRoom = () => {
               </div>
             </div>
           )}
+          
           {/* Search users */}
           {showUserSearch && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-
               <div className="bg-white dark:bg-gray-900 p-4 rounded-lg w-96">
-
                 <h2 className="text-lg font-semibold mb-3">
                   Start New Conversation
                 </h2>
@@ -828,7 +791,6 @@ const ChatRoom = () => {
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
-
                     if (e.target.value.trim()) {
                       searchUsers(e.target.value);
                     }
@@ -837,19 +799,15 @@ const ChatRoom = () => {
                 />
 
                 <div className="mt-3 space-y-2">
-
                   {searchResults.map((user) => (
                     <button
                       key={user._id}
-                      onClick={() =>
-                        createConversation(user._id)
-                      }
+                      onClick={() => createConversation(user._id)}
                       className="w-full text-left p-2 border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
                     >
                       {user.username}
                     </button>
                   ))}
-
                 </div>
 
                 <button
@@ -862,9 +820,7 @@ const ChatRoom = () => {
                 >
                   Close
                 </button>
-
               </div>
-
             </div>
           )}
         </div>

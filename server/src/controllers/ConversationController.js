@@ -83,9 +83,8 @@ export const createConversation =
             "Server Error",
         });
 
-    }
-
-  };
+  }
+};
 
 export const getConversations =
   async (req, res) => {
@@ -120,5 +119,42 @@ export const getConversations =
         });
 
     }
+};
 
+import DirectMessage from "../models/DirectMessage.js";
+
+export const getUnreadCounts = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const unreadCounts = await DirectMessage.aggregate([
+      {
+        $match: {
+          isRead: false,
+          sender: { $ne: userId },
+        },
+      },
+      {
+        $group: {
+          _id: "$conversationId",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const result = {};
+
+    unreadCounts.forEach((item) => {
+      result[item._id] = item.count;
+    });
+
+    res.status(200).json(result);
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Server Error",
+    });
+  }
 };
