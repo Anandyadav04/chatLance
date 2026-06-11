@@ -38,6 +38,7 @@ const ChatRoom = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [unreadCounts, setUnreadCounts] = useState({});
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const currentUser = JSON.parse(
     localStorage.getItem("user")
   );
@@ -467,23 +468,95 @@ const ChatRoom = () => {
           <MessageSquare className="w-6 h-6 text-blue-500" />
           <h1 className="text-xl font-semibold">ChatLance</h1>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() =>
-              navigate("/profile")
-            }
-            className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 rounded-lg"
-          >
-            Profile
-          </button>
+<div className="relative">
 
-          <button
-            onClick={logout}
-            className="px-4 py-2 text-sm text-red-600"
-          >
-            Logout
-          </button>
+  <button
+    onClick={() =>
+      setShowUserMenu(
+        !showUserMenu
+      )
+    }
+    className="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center gap-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+  >
+    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-semibold">
+      {currentUser?.username?.charAt(0).toUpperCase()}
+    </div>
+
+    <span className="text-sm font-medium">
+      {currentUser?.username}
+    </span>
+
+    <svg
+      className={`w-4 h-4 transition ${
+        showUserMenu
+          ? "rotate-180"
+          : ""
+      }`}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M19 9l-7 7-7-7"
+      />
+    </svg>
+  </button>
+
+  {showUserMenu && (
+    <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
+
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+
+        <div className="flex items-center gap-3">
+
+          <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+            {currentUser?.username?.charAt(0).toUpperCase()}
+          </div>
+
+          <div>
+            <p className="font-semibold">
+              {currentUser?.username}
+            </p>
+
+            <p className="text-xs text-gray-500">
+              {currentUser?.email}
+            </p>
+          </div>
+
         </div>
+
+      </div>
+
+      <button
+        onClick={() => {
+          setShowUserMenu(false);
+          navigate("/profile");
+        }}
+        className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+      >
+        👤 Profile
+      </button>
+
+      <button
+        className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+      >
+        ⚙️ Settings
+      </button>
+
+      <button
+        onClick={logout}
+        className="w-full px-4 py-3 text-left text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+      >
+        🚪 Logout
+      </button>
+
+    </div>
+  )}
+
+</div>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
