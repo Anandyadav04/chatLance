@@ -5,6 +5,7 @@ import ChatRoom from "./pages/ChatRoom.jsx";
 import ProtectedRoute from "./pages/ProtectedRoute.jsx";
 import Home from "./pages/Home.jsx"
 import Register from "./pages/Register.jsx";
+import Profile from "./pages/Profile.jsx";;
 
 function App() {
   return (
@@ -27,6 +28,14 @@ function App() {
           element={<Register />}
         />
 
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/chat"

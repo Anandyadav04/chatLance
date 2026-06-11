@@ -467,12 +467,23 @@ const ChatRoom = () => {
           <MessageSquare className="w-6 h-6 text-blue-500" />
           <h1 className="text-xl font-semibold">ChatLance</h1>
         </div>
-        <button
-          onClick={logout}
-          className="px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition"
-        >
-          Logout
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() =>
+              navigate("/profile")
+            }
+            className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 rounded-lg"
+          >
+            Profile
+          </button>
+
+          <button
+            onClick={logout}
+            className="px-4 py-2 text-sm text-red-600"
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
