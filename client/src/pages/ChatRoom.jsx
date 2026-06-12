@@ -649,15 +649,6 @@ const ChatRoom = () => {
 
               <div className="space-y-1">
                 {conversations.map((conversation) => {
-                    console.log(
-    "currentUser",
-    currentUser
-  );
-
-  console.log(
-    "participants",
-    conversation.participants
-  );
                   const otherUser = conversation.participants.find(
                     (user) => user._id !== currentUser._id
                   );
