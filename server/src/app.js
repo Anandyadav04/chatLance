@@ -4,6 +4,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import cookieparser from "cookie-parser";
+import env from "./config/env.js";
 
 const app = express();
 
@@ -11,7 +12,7 @@ app.use(express.json());
 
 app.use(
     cors({
-        origin: "http://localhost:5173",
+        origin: env.CLIENT_URL,
         credentials: true
     })
 );
