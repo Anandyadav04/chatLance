@@ -2,6 +2,8 @@
 
 A production-oriented realtime chat application built to learn and implement real backend architecture, WebSockets, distributed systems concepts, caching, monitoring, and scalable infrastructure.
 
+> **📖 View the Full Documentation:** [documentation.md](./documentation.md) for detailed architecture diagrams, database schemas, and Socket.IO protocol specs.
+
 ---
 
 # Tech Stack
