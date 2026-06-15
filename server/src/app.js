@@ -22,12 +22,20 @@ app.use(morgan("dev"));
 
 app.use(cookieparser());
 
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, 
-    max: 100
+// 1. Generous global limit for general browsing
+const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1000, // 1000 requests per IP
+    message: "Too many requests from this IP, please try again later."
 });
-
-app.use(limiter);
+// 2. Strict limit just for auth routes to prevent brute-force
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // Only 10 login/register attempts per 15 mins
+    message: "Too many login attempts, please try again after 15 minutes."
+});
+app.use(globalLimiter);
+app.use("/api/auth", authLimiter);
 
 // local module import
 import authRoutes from "./routes/authRoutes.js";
