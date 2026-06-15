@@ -382,6 +382,19 @@ const ChatRoom = () => {
     socket.emit("join_room", selectedRoom?._id);
   }, [selectedRoom, socket]);
 
+  useEffect(() => {
+    if (searchQuery.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      searchUsers(searchQuery);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const sendDirectMessage = () => {
     if (!message.trim()) return;
     if (!selectedConversation) return;
@@ -875,9 +888,6 @@ const ChatRoom = () => {
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
-                    if (e.target.value.trim()) {
-                      searchUsers(e.target.value);
-                    }
                   }}
                   className="w-full border rounded-lg px-3 py-2"
                 />
