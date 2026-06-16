@@ -14,7 +14,8 @@ import {
   Trash2,
   Plus,
   Hash,
-  Search
+  Search,
+  ArrowLeft
 } from "lucide-react";
 
 const ChatRoom = () => {
@@ -574,7 +575,7 @@ const ChatRoom = () => {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <div className="w-80 border-r border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 flex flex-col overflow-y-auto">
+        <div className={`w-full md:w-80 border-r border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 flex-col overflow-y-auto ${(selectedRoom || selectedConversation) ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 space-y-6">
             {/* Create Room */}
             {!showCreateRoom ? (
@@ -727,24 +728,37 @@ const ChatRoom = () => {
         </div>
 
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col bg-white dark:bg-gray-900">
+        <div className={`flex-1 flex-col bg-white dark:bg-gray-900 ${(!selectedRoom && !selectedConversation) ? 'hidden md:flex' : 'flex'}`}>
           {/* Chat Header */}
           {(selectedRoom || selectedConversation) && (
-            <div className="h-16 px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-              <div>
-                <h2 className="text-lg font-semibold">
-                  {selectedRoom
-                    ? selectedRoom.name
-                    : selectedConversation?.participants?.find(
-                        (u) => u._id !== currentUser.id
-                      )?.username}
-                </h2>
+            <div className="h-16 px-4 md:px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+              <div className="flex items-center gap-2">
+                <button 
+                  className="md:hidden p-2 -ml-2 mr-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors"
+                  onClick={() => {
+                    setSelectedRoom(null);
+                    setSelectedConversation(null);
+                    localStorage.removeItem("selectedRoom");
+                    localStorage.removeItem("selectedConversation");
+                  }}
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+                <div>
+                  <h2 className="text-lg font-semibold">
+                    {selectedRoom
+                      ? selectedRoom.name
+                      : selectedConversation?.participants?.find(
+                          (u) => u._id !== currentUser.id
+                        )?.username}
+                  </h2>
 
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {selectedRoom
-                    ? `${onlineUsers.length} online • ${messages.length} messages`
-                    : `${dmMessages.length} messages`}
-                </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {selectedRoom
+                      ? `${onlineUsers.length} online • ${messages.length} messages`
+                      : `${dmMessages.length} messages`}
+                  </p>
+                </div>
               </div>
             </div>
           )}
