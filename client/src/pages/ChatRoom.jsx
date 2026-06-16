@@ -479,7 +479,7 @@ const ChatRoom = () => {
       {/* Simple Navbar */}
       <div className="h-16 px-6 flex items-center justify-between border-b border-gray-200  bg-white ">
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-6 h-6 text-blue-500" />
+          <MessageSquare className="w-6 h-6 text-indigo-600" />
           <h1 className="text-xl font-semibold">ChatLance</h1>
         </div>
 <div className="relative">
@@ -492,7 +492,7 @@ const ChatRoom = () => {
     }
     className="px-3 py-2 bg-gray-100  rounded-lg flex items-center gap-2 hover:bg-gray-200  transition"
   >
-    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-semibold">
+    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 border-none flex items-center justify-center text-white text-sm font-semibold">
       {currentUser?.username?.charAt(0).toUpperCase()}
     </div>
 
@@ -526,7 +526,7 @@ const ChatRoom = () => {
 
         <div className="flex items-center gap-3">
 
-          <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 border-none flex items-center justify-center text-white font-bold">
             {currentUser?.username?.charAt(0).toUpperCase()}
           </div>
 
@@ -581,7 +581,7 @@ const ChatRoom = () => {
             {!showCreateRoom ? (
               <button
                 onClick={() => setShowCreateRoom(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition text-sm font-medium"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 border-none hover:from-indigo-600 hover:to-purple-700 hover:shadow-md text-white rounded-lg transition text-sm font-medium"
               >
                 <Plus className="w-4 h-4" />
                 New Room
@@ -606,7 +606,7 @@ const ChatRoom = () => {
                 placeholder="Search rooms..."
                 value={roomSearchQuery}
                 onChange={(e) => setRoomSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200  rounded-lg bg-white  focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200  rounded-lg bg-white  focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
 
@@ -631,7 +631,7 @@ const ChatRoom = () => {
                     }}
                     className={`w-full text-left px-3 py-2 rounded-lg transition text-sm ${
                       selectedRoom?._id === room._id
-                        ? "bg-blue-50  text-blue-600 "
+                        ? "bg-indigo-50  text-indigo-600 "
                         : "hover:bg-gray-100 "
                     }`}
                   >
@@ -647,7 +647,7 @@ const ChatRoom = () => {
             {/* Direct Messages */}
             <button
               onClick={() => setShowUserSearch(true)}
-              className="w-full mb-2 px-3 py-2 bg-green-500 text-white rounded-lg text-sm"
+              className="w-full mb-2 px-3 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 border-none text-white rounded-lg text-sm"
             >
               New DM
             </button>
@@ -679,12 +679,12 @@ const ChatRoom = () => {
                       }}
                       className={`w-full text-left px-3 py-2 rounded-lg transition text-sm ${
                         selectedConversation?._id === conversation._id
-                          ? "bg-green-50  text-green-600 "
+                          ? "bg-purple-50  text-purple-600 "
                           : "hover:bg-gray-100 "
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
 
                         <div className="flex items-center justify-between w-full">
                           <span>{otherUser?.username}</span>
@@ -714,7 +714,7 @@ const ChatRoom = () => {
                 {onlineUsers.map((user) => (
                   <div key={user.id} className="flex items-center gap-2 px-3 py-2">
                     <div className="relative">
-                      <div className="w-2 h-2 bg-green-500 rounded-full absolute bottom-0 right-0"></div>
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full absolute bottom-0 right-0"></div>
                       <div className="w-8 h-8 bg-gray-200  rounded-full flex items-center justify-center text-sm font-medium">
                         {user.username[0].toUpperCase()}
                       </div>
@@ -874,12 +874,12 @@ const ChatRoom = () => {
                   }}
                   onKeyPress={handleKeyPress}
                   rows={1}
-                  className="flex-1 px-4 py-2.5 text-base border border-gray-200  rounded-lg bg-gray-50  focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                  className="flex-1 px-4 py-2.5 text-base border border-gray-200  rounded-lg bg-gray-50  focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
                 />
                 <button
                   onClick={selectedConversation ? sendDirectMessage : sendMessage}
                   disabled={!message.trim()}
-                  className="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition flex items-center gap-2 text-sm font-medium"
+                  className="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 border-none hover:from-indigo-600 hover:to-purple-700 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition flex items-center gap-2 text-sm font-medium"
                 >
                   <Send className="w-4 h-4" />
                   Send
