@@ -475,9 +475,9 @@ const ChatRoom = () => {
   const displayedMessages = selectedConversation ? dmMessages : messages;
 
   return (
-    <div className="h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col">
+    <div className="h-screen bg-white  text-gray-900  flex flex-col">
       {/* Simple Navbar */}
-      <div className="h-16 px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+      <div className="h-16 px-6 flex items-center justify-between border-b border-gray-200  bg-white ">
         <div className="flex items-center gap-2">
           <MessageSquare className="w-6 h-6 text-blue-500" />
           <h1 className="text-xl font-semibold">ChatLance</h1>
@@ -490,7 +490,7 @@ const ChatRoom = () => {
         !showUserMenu
       )
     }
-    className="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center gap-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+    className="px-3 py-2 bg-gray-100  rounded-lg flex items-center gap-2 hover:bg-gray-200  transition"
   >
     <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-semibold">
       {currentUser?.username?.charAt(0).toUpperCase()}
@@ -520,9 +520,9 @@ const ChatRoom = () => {
   </button>
 
   {showUserMenu && (
-    <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
+    <div className="absolute right-0 mt-2 w-64 bg-white  rounded-xl shadow-xl border border-gray-200  overflow-hidden z-50">
 
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-b border-gray-200 ">
 
         <div className="flex items-center gap-3">
 
@@ -549,20 +549,20 @@ const ChatRoom = () => {
           setShowUserMenu(false);
           navigate("/profile");
         }}
-        className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+        className="w-full px-4 py-3 text-left hover:bg-gray-100 "
       >
         👤 Profile
       </button>
 
       <button
-        className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+        className="w-full px-4 py-3 text-left hover:bg-gray-100 "
       >
         ⚙️ Settings
       </button>
 
       <button
         onClick={logout}
-        className="w-full px-4 py-3 text-left text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+        className="w-full px-4 py-3 text-left text-red-500 hover:bg-red-50 "
       >
         🚪 Logout
       </button>
@@ -575,7 +575,7 @@ const ChatRoom = () => {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <div className={`w-full md:w-80 border-r border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 flex-col overflow-y-auto ${(selectedRoom || selectedConversation) ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`w-full md:w-80 border-r border-gray-200  bg-gray-50  flex-col overflow-y-auto ${(selectedRoom || selectedConversation) ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 space-y-6">
             {/* Create Room */}
             {!showCreateRoom ? (
@@ -587,11 +587,11 @@ const ChatRoom = () => {
                 New Room
               </button>
             ) : (
-              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+              <div className="bg-white  border border-gray-200  rounded-lg p-4">
                 <CreateRoom onCreateRoom={createRoom} />
                 <button
                   onClick={() => setShowCreateRoom(false)}
-                  className="mt-3 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                  className="mt-3 text-sm text-gray-500 hover:text-gray-700 "
                 >
                   Cancel
                 </button>
@@ -606,14 +606,14 @@ const ChatRoom = () => {
                 placeholder="Search rooms..."
                 value={roomSearchQuery}
                 onChange={(e) => setRoomSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200  rounded-lg bg-white  focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
             {/* Rooms List */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                <h3 className="text-xs font-semibold text-gray-500  uppercase tracking-wide">
                   All Rooms
                 </h3>
                 <span className="text-xs text-gray-400">{filteredRooms.length}</span>
@@ -631,8 +631,8 @@ const ChatRoom = () => {
                     }}
                     className={`w-full text-left px-3 py-2 rounded-lg transition text-sm ${
                       selectedRoom?._id === room._id
-                        ? "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
-                        : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                        ? "bg-blue-50  text-blue-600 "
+                        : "hover:bg-gray-100 "
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -653,7 +653,7 @@ const ChatRoom = () => {
             </button>
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                <h3 className="text-xs font-semibold text-gray-500  uppercase tracking-wide">
                   Direct Messages
                 </h3>
                 <span className="text-xs text-gray-400">
@@ -679,8 +679,8 @@ const ChatRoom = () => {
                       }}
                       className={`w-full text-left px-3 py-2 rounded-lg transition text-sm ${
                         selectedConversation?._id === conversation._id
-                          ? "bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400"
-                          : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                          ? "bg-green-50  text-green-600 "
+                          : "hover:bg-gray-100 "
                       }`}
                     >
                       <div className="flex items-center gap-2">
@@ -705,7 +705,7 @@ const ChatRoom = () => {
             {/* Online Users */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                <h3 className="text-xs font-semibold text-gray-500  uppercase tracking-wide">
                   Online
                 </h3>
                 <span className="text-xs text-gray-400">{onlineUsers.length}</span>
@@ -715,7 +715,7 @@ const ChatRoom = () => {
                   <div key={user.id} className="flex items-center gap-2 px-3 py-2">
                     <div className="relative">
                       <div className="w-2 h-2 bg-green-500 rounded-full absolute bottom-0 right-0"></div>
-                      <div className="w-8 h-8 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center text-sm font-medium">
+                      <div className="w-8 h-8 bg-gray-200  rounded-full flex items-center justify-center text-sm font-medium">
                         {user.username[0].toUpperCase()}
                       </div>
                     </div>
@@ -728,13 +728,13 @@ const ChatRoom = () => {
         </div>
 
         {/* Main Chat Area */}
-        <div className={`flex-1 flex-col bg-white dark:bg-gray-900 ${(!selectedRoom && !selectedConversation) ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`flex-1 flex-col bg-white  ${(!selectedRoom && !selectedConversation) ? 'hidden md:flex' : 'flex'}`}>
           {/* Chat Header */}
           {(selectedRoom || selectedConversation) && (
-            <div className="h-16 px-4 md:px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+            <div className="h-16 px-4 md:px-6 flex items-center justify-between border-b border-gray-200  bg-white ">
               <div className="flex items-center gap-2">
                 <button 
-                  className="md:hidden p-2 -ml-2 mr-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors"
+                  className="md:hidden p-2 -ml-2 mr-1 rounded-lg hover:bg-gray-100  text-gray-500 transition-colors"
                   onClick={() => {
                     setSelectedRoom(null);
                     setSelectedConversation(null);
@@ -753,7 +753,7 @@ const ChatRoom = () => {
                         )?.username}
                   </h2>
 
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-gray-500 ">
                     {selectedRoom
                       ? `${onlineUsers.length} online • ${messages.length} messages`
                       : `${dmMessages.length} messages`}
@@ -765,7 +765,7 @@ const ChatRoom = () => {
 
           {/* Typing Indicator */}
           {typingUser && (selectedRoom || selectedConversation) && (
-            <div className="px-6 py-2 text-sm text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
+            <div className="px-6 py-2 text-sm text-gray-500  border-b border-gray-200 ">
               {typingUser} is typing...
             </div>
           )}
@@ -775,32 +775,32 @@ const ChatRoom = () => {
             {!selectedRoom && !selectedConversation ? (
               <div className="h-full flex items-center justify-center">
                 <div className="text-center">
-                  <MessageSquare className="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
-                  <p className="text-gray-500 dark:text-gray-400">Select a room to start chatting</p>
+                  <MessageSquare className="w-12 h-12 text-gray-300  mx-auto mb-3" />
+                  <p className="text-gray-500 ">Select a room to start chatting</p>
                 </div>
               </div>
             ) : displayedMessages.length === 0 ? (
               <div className="h-full flex items-center justify-center">
-                <p className="text-gray-500 dark:text-gray-400">No messages yet. Say hello!</p>
+                <p className="text-gray-500 ">No messages yet. Say hello!</p>
               </div>
             ) : (
               displayedMessages.map((msg) => (
                 <div key={msg._id} className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <span className="text-sm font-medium text-gray-900 ">
                       {msg.user || msg.sender?.username}
                     </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                    <span className="text-xs text-gray-500 ">
                       {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
                   
                   {msg.isDeleted ? (
-                    <div className="text-gray-400 dark:text-gray-600 italic text-base">
+                    <div className="text-gray-400  italic text-base">
                       This message was deleted
                     </div>
                   ) : (
-                    <div className="text-gray-900 dark:text-gray-100 text-base leading-relaxed">
+                    <div className="text-gray-900  text-base leading-relaxed">
                       {msg.message}
                     </div>
                   )}
@@ -846,7 +846,7 @@ const ChatRoom = () => {
 
           {/* Input Area */}
           {(selectedRoom || selectedConversation) && (
-            <div className="border-t border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-900">
+            <div className="border-t border-gray-200  p-4 bg-white ">
               <div className="flex gap-3">
                 <textarea
                   placeholder="Type a message..."
@@ -874,7 +874,7 @@ const ChatRoom = () => {
                   }}
                   onKeyPress={handleKeyPress}
                   rows={1}
-                  className="flex-1 px-4 py-2.5 text-base border border-gray-200 dark:border-gray-800 rounded-lg bg-gray-50 dark:bg-gray-950 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                  className="flex-1 px-4 py-2.5 text-base border border-gray-200  rounded-lg bg-gray-50  focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
                 />
                 <button
                   onClick={selectedConversation ? sendDirectMessage : sendMessage}
@@ -891,7 +891,7 @@ const ChatRoom = () => {
           {/* Search users */}
           {showUserSearch && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-              <div className="bg-white dark:bg-gray-900 p-4 rounded-lg w-96">
+              <div className="bg-white  p-4 rounded-lg w-96">
                 <h2 className="text-lg font-semibold mb-3">
                   Start New Conversation
                 </h2>
@@ -911,7 +911,7 @@ const ChatRoom = () => {
                     <button
                       key={user._id}
                       onClick={() => createConversation(user._id)}
-                      className="w-full text-left p-2 border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                      className="w-full text-left p-2 border rounded-lg hover:bg-gray-100 "
                     >
                       {user.username}
                     </button>
