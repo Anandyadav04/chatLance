@@ -263,6 +263,23 @@ npm run dev
 
 ---
 
+# Docker Setup (Recommended)
+
+Instead of running the frontend and backend manually, you can spin up the entire application using Docker Compose from the root directory:
+
+```bash
+# Start all services
+docker-compose up --build
+
+# Run in detached mode (background)
+docker-compose up -d --build
+
+# Stop all services
+docker-compose down
+```
+
+---
+
 # Socket.IO Architecture
 
 ## Connection Flow
